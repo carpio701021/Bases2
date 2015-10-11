@@ -11,7 +11,7 @@ html
 
 		block scripts
 	
-	body
+	body		
 		nav.navbar.navbar-inverse.navbar-fixed-top
 			.container
 				.navbar-header
@@ -29,7 +29,7 @@ html
 									select.form-control.select2(multiple='multiple',style="width:380px;")
 										option
 										optgroup(label='Cracks/Hawaiian Time Zone')
-											option(value='AK') Abel
+											option(value='0') Abel
 											option(value='HI') Chino
 										optgroup(label='Super crack')
 											option(value='CA') Carpio
@@ -52,13 +52,13 @@ html
 							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar						
 						li.dropdown
 							a.dropdown-toggle(href='http://getbootstrap.com/examples/theme/#', data-toggle='dropdown', role='button', aria-haspopup='true', aria-expanded='false',style="padding:22px;") 
-								|Cuenta 
+								|#{username} 
 								span.caret
 							ul.dropdown-menu
 								li
-									a(href='http://getbootstrap.com/examples/theme/#') Action
+									a(href='http://getbootstrap.com/examples/theme/#') Perfil
 								li
-									a(href='http://getbootstrap.com/examples/theme/#') Another action
+									a(href='http://getbootstrap.com/examples/theme/#') Cerrar Sesion
 								li
 									a(href='http://getbootstrap.com/examples/theme/#') Something else here
 								li.divider(role='separator')

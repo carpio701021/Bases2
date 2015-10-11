@@ -30,9 +30,18 @@ router.post('/', function(req, res) {
 			req.user_session.id =respuestabd[0][0].id;
 			req.user_session.idTipoUsuario = respuestabd[0][0].idTipoUsuario;
 			req.user_session.active = false;
-
-			//redireccion a la pagina de inicio del usuario (segun su tipo de usuario)
-			res.redirect('/');
+			var tipo_usuario = req.user_session.idTipoUsuario;
+			if(tipo_usuario==1){ //usuario admin
+				res.redirect('/admin')
+			}else{
+				if(tipo_usuario==2){ //usuario owner
+					res.redirect('/usuario_admin');
+				}
+				else{ //usuario final
+					res.redirect('/');	
+				}
+			}
+			//redireccion a la pagina de inicio del usuario (segun su tipo de usuario)		
 			//res.render('index',{ title : 'Sesion iniciada',resultado : JSON.stringify(params.rrows)});
 		}else{
 			//Si no inicia sesion muestra el error
@@ -66,13 +75,54 @@ router.post('/', function(req, res) {
 	dbconnection.exe_query(
 			str_query, 
 			validar_login,
-			res);
-
-
-    
-		
-
+			res);    	
 
 });
 
+var valor_insert = function(entrada){
+	var index=[];
+	for (var x in entrada[0]) {
+		  index.push(x);
+		  console.log(x);
+	}		
+	var val=entrada[0][index[0]]
+	return val
+}
+
+router.post('/registrar',function(req,res) {
+	var tipo_usuario=3;
+	var nombre= "'"+req.body.nombre+"'";
+	var correo= "'"+req.body.Correo+"'";
+	var username= "'"+req.body.NombreUsuario+"'";
+	var pass= "'"+req.body.Contrasenia+"'";	
+	var tel= "'"+req.body.Telefono+"'";
+	var FechaNacimiento= "'"+req.body.FechaNacimiento+"'";
+	var genero= req.body.genero; //no se como
+	console.log(req.body.genero)
+	console.log("nom "+nombre+" mail: "+correo+" usern:"+username+" pas:"+pass+" tel:"+tel+" fecha:"+FechaNacimiento+" gen:"+genero);
+	function registrar_usuario(exito){		
+		if(valor_insert(exito)!='0'){
+			res.render('login', { 
+				title: 'Iniciar Sesión',
+				exito2: 'Usuario registrado con exito'
+			});
+		}else{
+			res.render('login', { 
+				title: 'Iniciar Sesión',
+				error2: 'Ocurrió un problema para registrar usuario'				
+			});
+		}
+	}
+
+	var dbconnection = require('../routes/dbconnection.js'); 
+    var str_query = "select insertUsuario("+tipo_usuario+","+username+","+nombre+","+FechaNacimiento+","+tel
+    	+","+correo+","+genero+","+pass+");";
+	console.log(str_query);	
+	dbconnection.exe_query(
+			str_query, 
+			registrar_usuario,
+			res);    	
+		
+	// body...	
+});
 module.exports = router;
