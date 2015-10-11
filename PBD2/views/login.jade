@@ -1,0 +1,86 @@
+doctype html
+html
+	head
+		title= title
+		//meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+		meta(name='viewport', content='width=device-width,', initial-scale='1')
+		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/bootstrap.css')
+		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2-bootstrap.css')
+		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2.css')		
+	
+	body		
+		nav.navbar.navbar-inverse.navbar-fixed-top
+			.container
+				.navbar-header
+					button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar', aria-expanded='false', aria-controls='navbar')
+						span.sr-only Toggle navigation
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.navbar-brand(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscatodo
+				#navbar.navbar-collapse.collapse
+					ul.nav.navbar-nav						
+						li
+							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Conocenos
+
+		div.container
+			br
+			br
+			br			
+			br			
+			.container
+				
+				.row					
+					.col-sm-6(style='background-color:lavender;')						
+						h1(align='center')
+							|#{title}
+						section.loginform.cf
+							form(name='login', action='/login', method='POST', accept-charset='utf-8')
+								ul
+									if error
+										li
+											h4(style="color:red;") Error: #{error}
+									
+									li
+										label(for='c_user') Código Usuario
+										input(type='text', name='c_user', placeholder='usuario', required='')
+										
+									li
+										label(for='password') Contraseña
+										input(type='password', name='password', placeholder='contraseña', required='')
+										
+									li
+										div(align='center')
+											input(type='submit', value='Ingresar',)
+					.col-sm-6(style='background-color:lavenderblush;')
+						h1(align='center') Registrate!						
+						h3 Nombre 							
+						h3 Contraseña
+
+
+
+			section.loginform.cf
+				form(name='login', action='/login', method='POST', accept-charset='utf-8')
+					ul
+						if error
+							li
+								h4(style="color:red;") Error: #{error}
+						
+						li
+							label(for='c_user') Código Usuario
+							input(type='text', name='c_user', placeholder='usuario', required='')
+							
+						li
+							label(for='password') Contraseña
+							input(type='password', name='password', placeholder='contraseña', required='')
+							
+						li
+							div(align='center')
+								input(type='submit', value='Ingresar',)
+	
+		script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
+		script(src='/stylesheets/bootstrap-3.3.5-dist/js/bootstrap.min.js')
+		//script(src='/stylesheets/bootstrap-3.3.5-dist/js/docs.min.js')
+		// IE10 viewport hack for Surface/desktop Windows 8 bug
+		script(src='/stylesheets/bootstrap-3.3.5-dist/js/npm.js')
+		script(src='/stylesheets/bootstrap-3.3.5-dist/js/select.js')
