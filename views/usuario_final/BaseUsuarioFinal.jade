@@ -11,7 +11,7 @@ html
 
 		block scripts
 	
-	body		
+	body
 		nav.navbar.navbar-inverse.navbar-fixed-top
 			.container
 				.navbar-header
@@ -24,21 +24,28 @@ html
 				#navbar.navbar-collapse.collapse
 					ul.nav.navbar-nav
 						li
-							a
+							a 
 								.select2-wrapper
 									select.form-control.select2(multiple='multiple',style="width:380px;")
 										option
-										optgroup(label='Cracks/Hawaiian Time Zone')
-											option(value='AK') Abel
-											option(value='HI') Chino
-										optgroup(label='Super crack')
-											option(value='CA') Carpio
-											option(value='NV') Julio		
+										!{establecimientos}
+										//
+											optgroup(label='muladas')
+												option(value='2', title='{"id":2,"tipo":"Hotel","establecimiento":"Hotel Conquistador and Conference Center Guatemalas","tags":["Comida","Conferencias","Hospedaje"]}') Hotel Conquistador
+											optgroup(label='Restaurante')
+												option(value='1', title='{"id":1,"tipo":"Restaurante","establecimiento":"Little Cesars","tags":["Comida","Naranja","Rojo"]}') Little Cesars
+											optgroup(label='Hotel')
+												option(value='3', title='{"id":2,"tipo":"Hotel","establecimiento":"Hotel Conquistador and Conference Center Guatemalas","tags":["Comida","Conferencias","Hospedaje"]}') putos
+
+										//optgroup(label='Personas')
+											option(value='{}') Javier José Carpio Bonilla
+											option(value='{}') Julio Flores interiano
+											option(value='{}') asdf, fdsa,direccion zona 4 b hotel chamalon
 											
 									script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
 									script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
 									script.
-										$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 6 } );
+										$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 1 } );
 										$( ":checkbox" ).on( "click", function() {
 										$( this ).parent().nextAll( "select" ).select2( "enable", this.checked );
 										});
@@ -77,4 +84,4 @@ html
 			//script(src='/stylesheets/bootstrap-3.3.5-dist/js/docs.min.js')
 			// IE10 viewport hack for Surface/desktop Windows 8 bug
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/npm.js')
-			script(src='/stylesheets/bootstrap-3.3.5-dist/js/select.js')
+			//script(src='/stylesheets/bootstrap-3.3.5-dist/js/select.js')
