@@ -26,7 +26,6 @@ router.post('/', function(req, res) {
 		if(respuestabd[0].length>0){
 			//si es exitoso se guarda la cookie con los datos del usuario
 			req.user_session.usuario = req.body.c_user;
-
 			req.user_session.id =respuestabd[0][0].id;
 			req.user_session.idTipoUsuario = respuestabd[0][0].idTipoUsuario;
 			req.user_session.active = false;
@@ -35,7 +34,7 @@ router.post('/', function(req, res) {
 				res.redirect('/admin')
 			}else{
 				if(tipo_usuario==2){ //usuario owner
-					res.redirect('/usuario_admin');
+					res.redirect('/');
 				}
 				else{ //usuario final
 					res.redirect('/');	

@@ -1,0 +1,21 @@
+select.form-control.select2(id='slbuscador', multiple='multiple',style="width:380px;")
+	option 
+	!{establecimientos}
+script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
+script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
+script.
+	$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 1 } );
+	$( ".select2" ).on( "select" , function(){
+			//alert("hola: " + slbuscador.value);
+			window.location = "/establecimiento?id="+slbuscador.value;
+			//window.location.assign("http://stackoverflow.com");
+		});
+	$( ":checkbox" ).on( "click", function() {
+	$( this ).parent().nextAll( "select" ).select2( "enable", this.checked );
+	});
+	$( "#demonstrations" ).select2( { placeholder: "Select2 version", minimumResultsForSearch: -1 } ).on( "change", function() {
+	document.location = $( this ).find( ":selected" ).val();
+	} );
+	$( "button[data-select2-open]" ).click( function() {
+	$( "#" + $( this ).data( "select2-open" ) ).select2( "open" );
+	});
