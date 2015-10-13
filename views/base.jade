@@ -2,7 +2,6 @@ doctype html
 html
 	head
 		title= title
-		//meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
 		meta(name='viewport', content='width=device-width,', initial-scale='1')
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/bootstrap.css')
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2-bootstrap.css')
@@ -25,29 +24,7 @@ html
 					ul.nav.navbar-nav
 						li
 							.select2-wrapper
-								select.form-control.select2(style="width:60%;max-width:380px")
-									option
-									optgroup(label='Cracks')
-										option(value='AK') Abel Rodrigo Gutierrez
-										option(value='HI') Chino Daniel Chavarría esteban
-									optgroup(label='Super crack')
-										option(value='CA') Javier José Carpio Bonilla
-										option(value='NV') Julio Flores interiano
-										option(value='asdf') asdf, fdsa,direccion zona 4 b hotel chamalon
-										
-								script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
-								script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
-								script.
-									$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 6 } );
-									$( ":checkbox" ).on( "click", function() {
-									$( this ).parent().nextAll( "select" ).select2( "enable", this.checked );
-									});
-									$( "#demonstrations" ).select2( { placeholder: "Select2 version", minimumResultsForSearch: -1 } ).on( "change", function() {
-									document.location = $( this ).find( ":selected" ).val();
-									} );
-									$( "button[data-select2-open]" ).click( function() {
-									$( "#" + $( this ).data( "select2-open" ) ).select2( "open" );
-									});
+								include buscador.jade
 						li
 							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar						
 						li.dropdown
@@ -74,7 +51,4 @@ html
 		block finalito
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/bootstrap.min.js')
-			//script(src='/stylesheets/bootstrap-3.3.5-dist/js/docs.min.js')
-			// IE10 viewport hack for Surface/desktop Windows 8 bug
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/npm.js')
-			script(src='/stylesheets/bootstrap-3.3.5-dist/js/select.js')
