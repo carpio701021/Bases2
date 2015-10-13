@@ -1,3 +1,4 @@
+
 extends BaseUsuarioAdmin
 
 block scripts
@@ -7,8 +8,49 @@ block scripts
 			document.getElementById(mivar).innerHTML='<div class="alert alert-success" role="alert"><strong>Mensaje de exito: </strong>de esta manera podemos colocar alertas</div>';
 		}
 
-		function llenar(){		
-			document.getElementById("prog").style="width:100%;";
+		function agregar_tipo(){						
+			bootbox.prompt("What is your name?", function(result) {								
+				if (result === null) {																						 
+					alert("Prompt dismissed");															
+				} else {								 
+					//mandar por post el nombre a insertar
+					var xmlobj = new XMLHttpRequest();					
+					var data_to_send = 'nombre='+result;			
+
+					var tabla;
+					xmlobj.onreadystatechange = function(){			
+						if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+							if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
+								var option = document.createElement('option');
+								option.value=xmlobj.responseText
+								option.innerHTML=result
+								tipo_establecimiento.add(option);								
+							}else{
+								alert("Imposible cargar datos del curso seleccionado");
+							}
+						}
+					};			
+					xmlobj.open('POST', '/usuario_admin/crear_tipo',true);
+					xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+					xmlobj.send(data_to_send);
+			}
+			});
+		}
+
+		function administrar_general(){
+			area_administrar.innerHTML='!{html_administrar_general}'
+		}
+
+		function administrar_caracteristicas(){			
+			area_administrar.innerHTML="!{admin_caracteristicas_html}"			
+		}
+
+		function administrar_servicios(){
+			area_administrar.innerHTML="<h1> mostrar servicios</h1>"
+		}		
+
+		function administrar_dimensiones(){
+			area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
 		}
 block body
 	div.container
@@ -16,10 +58,40 @@ block body
 		br
 		br
 		br
+
 		div(class="jumbotron")
 			h1 Bienvenido usuario administrador	#{username}	
 		if tiene_establecimiento==1
-			h si tiene
+			.container				
+				.row
+					.col-sm-3(style='background-color:lavender;')
+						h1 Administrar
+						ul.list-group							
+							a.list-group-item(onClick="administrar_general();")
+								span.badge 3
+								| General
+							a.list-group-item(onClick="administrar_servicios();")
+								span.badge 5
+								| Servicios
+							a.list-group-item(onClick="administrar_caracteristicas();")
+								span.badge 14
+								| Caracteristicas
+							a.list-group-item(onClick="administrar_dimensiones();")
+								span.badge 3
+								| Dimensiones				
+
+
+					.col-sm-6(style='background-color:lavenderblush;')
+						div(name="area_administrar" id="area_administrar")
+							| Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
+							| doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
+							| veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+					.col-sm-3(style='background-color:lavenderblush;')
+						p
+							| Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
+							| doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
+							| veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+
 		else			
 			div.container
 				h2(align='center') 
@@ -33,17 +105,16 @@ block body
 										input.form-control(type='text', name='nombre')
 								tr
 									td(align='right')
-										label(for='descripsión',style='padding:10px') Descripsión:
-									td
-										textarea.form-control(name='descripsión')		
-								tr
-									td(align='right')
 										label(for='tipo_establecimiento',style='padding:10px') Tipo:
 									td
-										.form-group(style='padding:10px')
-											select.form-control(name='tipo_establecimiento')
-												option(value='0') Hotel
-												option(value='1') Restaurante
+										!{tipos_establecimientos}
+									td(align='right')
+										button.btn.btn-primary(type="button" style="width:100%;padding:1'px" onClick="agregar_tipo();") agregar							
+								tr
+									td(align='right' style='width:20%')
+										label(for='descripsion',style='padding:10px') Descripsión:
+									td()
+										textarea.form-control(name='descripsion')								
 							table
 								tr
 									td(style='width:18%', align='right')
