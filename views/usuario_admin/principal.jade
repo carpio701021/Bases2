@@ -3,13 +3,12 @@ extends BaseUsuarioAdmin
 
 block scripts
 	script.
-		var mivar = "#{mivar}"
 		function hola(){
 			document.getElementById(mivar).innerHTML='<div class="alert alert-success" role="alert"><strong>Mensaje de exito: </strong>de esta manera podemos colocar alertas</div>';
 		}
 
 		function agregar_tipo(){						
-			bootbox.prompt("What is your name?", function(result) {								
+			bootbox.prompt("Nuevo tipo de establecimiento", function(result) {								
 				if (result === null) {																						 
 					alert("Prompt dismissed");															
 				} else {								 
@@ -37,8 +36,25 @@ block scripts
 			});
 		}
 
+		function mandar_post(path){
+		var xmlobj = new XMLHttpRequest();											
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+						area_administrar.innerHTML=xmlobj.responseText;
+					}else{
+						alert("Imposible cargar datos");
+					}
+				}
+			};			
+			xmlobj.open('POST', path,true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send();	
+		}
+
 		function administrar_general(){
-			area_administrar.innerHTML='!{html_administrar_general}'
+			//area_administrar.innerHTML='!{html_administrar_general}'
+			mandar_post('/usuario_admin/cargar_general')				
 		}
 
 		function administrar_caracteristicas(){			
@@ -46,11 +62,16 @@ block scripts
 		}
 
 		function administrar_servicios(){
-			area_administrar.innerHTML="<h1> mostrar servicios</h1>"
+			mandar_post('/usuario_admin/cargar_servicios')				
 		}		
 
 		function administrar_dimensiones(){
 			area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
+		}
+		
+		function seleccionar_servicio(){
+			var obj =JSON.parse(document.getElementById('select_mis_servicios').value)
+			area_consultar.innerHTML="<h1> "+obj["id"]+obj["calificacion"]+obj["nombre"]+"</h1>"
 		}
 block body
 	div.container
@@ -60,15 +81,14 @@ block body
 		br
 
 		div(class="jumbotron")
-			h1 Bienvenido usuario administrador	#{username}	
+			h1 Bienvenido administrador	#{username}	
 		if tiene_establecimiento==1
 			.container				
-				.row
-					.col-sm-3(style='background-color:lavender;')
-						h1 Administrar
+				.row				
+					.col-sm-2(style='background-color:lavender;')
+						h2 Administrar
 						ul.list-group							
-							a.list-group-item(onClick="administrar_general();")
-								span.badge 3
+							a.list-group-item(onClick="administrar_general();")								
 								| General
 							a.list-group-item(onClick="administrar_servicios();")
 								span.badge 5
@@ -80,53 +100,67 @@ block body
 								span.badge 3
 								| Dimensiones				
 
-
-					.col-sm-6(style='background-color:lavenderblush;')
+					.col-sm-7
 						div(name="area_administrar" id="area_administrar")
 							| Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
 							| doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
 							| veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+							!{icono}
 					.col-sm-3(style='background-color:lavenderblush;')
-						p
-							| Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-							| doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-							| veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+						div(name="area_consultar" id="area_consultar")
+
+						
 
 		else			
-			div.container
-				h2(align='center') 
-					Strong Crea tu establecimiento!
-						form(name='FormCrearEstablecimiento', action='/usuario_admin/crear', method='POST', accept-charset='utf-8')
-							table
-								tr
-									td(align='right' style='width:20%')
+			.container				
+					form(name='FormCrearEstablecimiento', action='/usuario_admin/crear', method='POST', accept-charset='utf-8')
+						.row
+							.col-sm-6
+								h2(align='center') 
+									Strong Crea tu Establecimiento!
+								.row
+									.col-sm-3(align="right")
 										label(for='nombre',style='padding:5px') Nombre:
-									td
+									.col-sm-7
 										input.form-control(type='text', name='nombre')
-								tr
-									td(align='right')
-										label(for='tipo_establecimiento',style='padding:10px') Tipo:
-									td
-										!{tipos_establecimientos}
-									td(align='right')
-										button.btn.btn-primary(type="button" style="width:100%;padding:1'px" onClick="agregar_tipo();") agregar							
-								tr
-									td(align='right' style='width:20%')
-										label(for='descripsion',style='padding:10px') Descripsión:
-									td()
-										textarea.form-control(name='descripsion')								
-							table
-								tr
-									td(style='width:18%', align='right')
-										label(for='longitud',style='padding:10px') Longitud:
-									td(style='width:15%')
-										input.form-control(type='number', name='longitud')
-									td(align='left', style='width:10%')
-										label(for='latitud',style='padding:10px') Latitud:
-									td(align='left',style='width:15%')
-										input.form-control(type='number', name='latitud')
-									td(align="center")
-										input.btn.btn-lg.btn-primary(type='submit', value='Crear', style="width:45%")
+								.row
+									.col-sm-3(align="right")
+										label(for='tipo_establecimiento',style='padding:5px') Tipo:
+									.col-sm-5
+										div(style="padding:5px")
+											select.form-control(type="select")
+												option mi opcion1
+												option(selected) mi opcion
+												option mi opcio
+									.col-sm-2
+										div(style="padding:5px",align="left")
+											button.btn.btn-sm.btn-success(type="button"  onClick="agregar_tipo();") agregar
+								.row
+									.col-sm-3(align="right")
+										label(for='descripsion',style='padding:5px') Descripc	ión:
+									.col-sm-7
+										div(style='padding:2px')
+											textarea.form-control(name='descripsion')								
+								.row
+									.col-sm-3(align="right")																	
+										label(for='longitud',style='padding:5px') Longitud:
+									.col-sm-2
+										input.form-control(type='number', name='longitud',style="width:115px")
+									.col-sm-2(align="right")							
+										label(for='latitud',style='padding:5px 5px 5px 35px') Latitud:
+									.col-sm-2
+										input.form-control(type='number', name='latitud', style="width:115px")
+								.row
+									.col-sm-7
+									.col-sm-3
+										div(align="right", style="padding:5px")
+											input.btn.btn-primary(type='submit', value='Crear',style="width:100%")
+		br
+		br
+		br
+		br
+		br
+		br
 		br
 		br
 
