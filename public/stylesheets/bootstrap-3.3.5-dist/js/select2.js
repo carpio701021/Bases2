@@ -918,10 +918,26 @@ the specific language governing permissions and limitations under the Apache Lic
 
                     process=function(element, collection) {
                         var group;
+                        
                         if (element.is("option")) {
+                            //console.log('Esto hay: "' + element[0].title + '"');
+                            if(element[0].title != '') 
+                                var establecimiento = JSON.parse(element[0].title);
                             if (query.matcher(term, element.text(), element)) {
                                 collection.push(self.optionToData(element));
-                            }
+                            }else if(element[0].title == '') return;
+                            else
+                         //modificacion carpio
+                            if (query.matcher(term, establecimiento.nombre, element)) {
+                                collection.push(self.optionToData(element));
+                            } else if (query.matcher(term, establecimiento.tipo, element)) {
+                                collection.push(self.optionToData(element));
+                            } else {
+                                for(var tag=0; tag < establecimiento.tags.length ; tag++)
+                                    if (query.matcher(term, establecimiento.tags[tag], element))
+                                        collection.push(self.optionToData(element));
+                            } 
+                        //[lbl] e1: var a = 1;
                         } else if (element.is("optgroup")) {
                             group=self.optionToData(element);
                             element.children().each2(function(i, elm) { process(elm, group.children); });
