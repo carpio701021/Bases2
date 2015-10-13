@@ -8,6 +8,7 @@ html
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2-bootstrap.css')
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2.css')
 	
+	
 	body
 		nav.navbar.navbar-inverse.navbar-fixed-top
 			.container
@@ -109,8 +110,64 @@ html
 								strong #{error2}
 						if exito2
 							.alert.alert-success(role='alert')
-								strong #{exito2}			
-	
+								strong #{exito2}		
+			.container				
+					form(name='FormCrearEstablecimiento', action='/usuario_admin/crear', method='POST', accept-charset='utf-8')
+						.row
+							.col-sm-8
+								h2(align='center') 
+									Strong Administrar Servicios
+								.row									
+									.col-sm-4(align="center")
+										.panel.panel-info
+											.panel-heading(style='background-color:#A9D0F5;')
+												h3.panel-title Servicios mi tipo
+											.panel-body
+												div.list-group
+													select.input-group-lg(size="4",style="width:100%")								
+														option.list-group-item item
+														option.list-group-item o1
+														option.list-group-item o2
+														option.list-group-item o3
+														option.list-group-item o4																												
+														option.list-group-item o5
+														option.list-group-item o6
+														option.list-group-item o7
+
+
+									.col-sm-3(align="center")
+										div(style="padding: 10px 0px 0px 0px")											
+											.row
+												.col-sm-4
+													button.btn.btn-sm.btn-success(name="btn_crear_servicio", style="width:35px", onClick="agregar_servicio();") +	
+												.col-sm-4
+													button.btn.btn-sm.btn-default(name="btn_sumar_servicio", style="width:35px;background-color:#E0F8F7;") >>												
+												.col-sm-4
+													button.btn.btn-sm.btn-danger(name="btn_restar_servicio", style="width:35px;") -	
+									.col-sm-4(align="center")
+										.panel.panel-info
+											.panel-heading(style='background-color:#E0F8F7;') 
+												h3.panel-title Mis Servicios
+											.panel-body
+												div.list-group
+													select.input-group-lg(size="4",style="width:100%",onChange="seleccion()")								
+														option.list-group-item item
+														option.list-group-item o1
+														option.list-group-item o2
+														option.list-group-item o3
+														option.list-group-item o4																												
+														option.list-group-item o5
+														option.list-group-item o6
+														option.list-group-item o7
+								.row
+									.col-sm-7
+									.col-sm-3
+										div(align="right", style="padding:5px")
+											input.btn.btn-primary(type='submit', value='Crear',style="width:100%")					
+		script.
+			function seleccion(){
+				alert("popo");
+			}
 		
 		script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
 		script(src='/stylesheets/bootstrap-3.3.5-dist/js/bootstrap.min.js')
