@@ -3,6 +3,7 @@ extends BaseUsuarioAdmin
 
 block scripts
 	script.
+		var array_valores=[]
 		function hola(){
 			document.getElementById(mivar).innerHTML='<div class="alert alert-success" role="alert"><strong>Mensaje de exito: </strong>de esta manera podemos colocar alertas</div>';
 		}
@@ -36,12 +37,65 @@ block scripts
 			});
 		}
 
-		function mandar_post(path){
+		function mandar_post(path,area){
 		var xmlobj = new XMLHttpRequest();											
 			xmlobj.onreadystatechange = function(){			
 				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
-						area_administrar.innerHTML=xmlobj.responseText;
+						var obj=JSON.parse(xmlobj.responseText);
+						alert(xmlobj.responseText)
+						if(area=='general'){							
+							nombre_general.value=obj[0][0].valor;
+							descripsion_general.value=obj[0][4].valor;
+							longitud.value=obj[0][1].valor;
+							latitud.value=obj[0][2].valor;							
+						}
+						if(area=='servicios'){		
+							var all_services=obj.servicios_todos[0];							
+							limpiar_select(select_mis_servicios)
+							limpiar_select(select_servicios_todos)
+							for(var i in all_services){								
+								var option=document.createElement('option')
+								option.value=all_services[i]['id']
+								option.className='list-group-item'
+								option.innerHTML=all_services[i]['nombre']
+								select_servicios_todos.add(option)
+							}
+							var my_services=obj.mis_servicios[0];							
+							for(var i in my_services){
+								var option=document.createElement('option')
+								option.value=my_services[i]['id']+","+my_services[i]['porcentaje']
+								option.className='list-group-item'
+								option.innerHTML=my_services[i]['porcentaje']+"% "+my_services[i]['nombre']
+								select_mis_servicios.add(option)								
+							}
+							badge_servicios.innerHTML=my_services.length
+							actualizar_total_porcentaje();
+						}
+						if(area=='caracteristicas'){			
+							var atributos=obj.atributos_tipos[0];
+							var valores=obj.atributos_valores[0];	
+							limpiar_select(select_atributos)										
+							for(var i in atributos){
+								if(parseInt(atributos[i]['id'])>5 && atributos[i]['dimension']==0){
+									console.log(i)
+									console.log(atributos[i].nombre)
+									var option = document.createElement('option');
+									option.value=atributos[i]['id']								
+									option.innerHTML=atributos[i]['nombre'];
+									option.className='list-group-item';
+									select_atributos.add(option)
+								}
+							}
+							array_valores=[]
+							for(var i=5; i<valores.length;i++){
+								var option = document.createElement('option');
+								option.value=valores[i]['idValor']+","+valores[i]['nombre']
+								option.innerHTML=valores[i]['cantidad']+" "+valores[i]['valor']
+								option.className='list-group-item';
+								array_valores.push(option)
+							}
+						}
 					}else{
 						alert("Imposible cargar datos");
 					}
@@ -52,27 +106,276 @@ block scripts
 			xmlobj.send();	
 		}
 
+		function limpiar_select(select){
+			for(var o in select){
+				select.options.remove(o);
+			}
+		}
+
+		function desaparecer_areas(){
+			area_general.style.display='none'
+			area_servicios.style.display='none'
+			area_caracteristicas.style.display='none'
+			area_dimensiones.style.display='none'
+			area_bienvenida.style.display='none'
+		}
+
 		function administrar_general(){
 			//area_administrar.innerHTML='!{html_administrar_general}'
-			mandar_post('/usuario_admin/cargar_general')				
+			desaparecer_areas();
+			area_general.style.display='block'
+			mandar_post('/usuario_admin/cargar_general','general')				
 		}
 
 		function administrar_caracteristicas(){			
-			area_administrar.innerHTML="!{admin_caracteristicas_html}"			
+			desaparecer_areas();
+			area_caracteristicas.style.display='block'			
+			mandar_post('/usuario_admin/cargar_caracteristicas','caracteristicas')
 		}
 
 		function administrar_servicios(){
-			mandar_post('/usuario_admin/cargar_servicios')				
+			desaparecer_areas();
+			area_servicios.style.display='block'
+			mandar_post('/usuario_admin/cargar_servicios','servicios')				
 		}		
 
 		function administrar_dimensiones(){
-			area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
+			desaparecer_areas();
+			area_dimensiones.style.display='block'
+			//area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
 		}
 		
 		function seleccionar_servicio(){
-			var obj =JSON.parse(document.getElementById('select_mis_servicios').value)
-			area_consultar.innerHTML="<h1> "+obj["id"]+obj["calificacion"]+obj["nombre"]+"</h1>"
+			//var obj =JSON.parse(document.getElementById('select_mis_servicios').value)
+			var val =select_mis_servicios.value.split(",")
+			var Nombre =select_mis_servicios.options.item(select_mis_servicios.options.selectedIndex).innerHTML;
+			area_consultar.innerHTML='<h3> id:'+val[0]+" "+ Nombre.split("% ")[1]+'</h3>'
+			//area_consultar.innerHTML="<h1> "+obj["id"]+obj["calificacion"]+obj["nombre"]+"</h1>"
 		}
+		function btn_definir_porcentaje(){
+			var opt = select_mis_servicios.options.item(select_mis_servicios.options.selectedIndex)
+			bootbox.prompt("Porcentaje en el enfoque del establecimiento de "+ opt.innerHTML.split("% ")[1],function(result){
+				if(result!=null){					
+					opt.value=opt.value.split(",")[0]+","+result;
+					opt.innerHTML=result+"% "+opt.innerHTML.split("% ")[1]
+					actualizar_total_porcentaje();
+				}
+			});
+		}
+		function actualizar_total_porcentaje(){
+			var tot=0
+			for(var e=0;e< select_mis_servicios.length;e++){				
+				var val = select_mis_servicios.options.item(e).value.split(",")[1]
+				tot=tot+parseInt(val)				
+			}
+				
+			if(tot==100){
+				btn_guardar_servicios.disabled=false
+				div_total.innerHTML='<span class="label label-success">Total: '+tot	+'%</span>'
+			}
+			else{
+				btn_guardar_servicios.disabled=true			
+				div_total.innerHTML='<span class="label label-danger">Total: '+tot	+'%</span>'
+			}
+			
+		}
+		function btn_sumar_servicio(){			
+			var op_selected = select_servicios_todos.options.item(select_servicios_todos.options.selectedIndex);
+			op_selected.value=op_selected.value+",0"
+			op_selected.innerHTML= "0% "+op_selected.innerHTML
+			select_mis_servicios.add(op_selected)
+			actualizar_total_porcentaje();
+		}
+		function btn_restar_servicio(){		
+			var op_selected = select_mis_servicios.options.item(select_mis_servicios.options.selectedIndex);
+			op_selected.value=op_selected.value.split(",")[0]
+			op_selected.innerHTML= op_selected.innerHTML.split("% ")[1]
+			select_servicios_todos.add(op_selected)
+			actualizar_total_porcentaje();
+		}
+		function agregar_servicio(){
+			bootbox.prompt("Nuevo servicio", function(result) {								
+				if (result != null) {																						 													
+					var xmlobj = new XMLHttpRequest();											
+					xmlobj.onreadystatechange = function(){			
+						if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+							if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+								var obj=JSON.parse(xmlobj.responseText);
+								alert(xmlobj.responseText)												
+								var val2 = valor_insert(obj)							
+								alert(val2)
+								if(val2>0){
+									var option = document.createElement('option')
+									option.value=val2
+									option.innerHTML=result
+									option.className='list-group-item'
+									select_servicios_todos.add(option)
+								}else{
+									bootbox.alert("ERROR!: El servicio "+result+" ya existe")
+								}
+							}else
+								alert("Error al agregar servicio");							
+						}
+					}
+					var params="nombre="+result;
+					xmlobj.open('POST','/usuario_admin/crear_servicio',true);
+					xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');					
+					xmlobj.send(params);	
+				}
+			});
+		}
+		function valor_insert(entrada){
+			var index=[];
+			for (var x in entrada[0]) {
+				  index.push(x);
+				  console.log(x);
+			}		
+			var val=entrada[0][index[0]]
+			return val
+		}
+		function actualizar_servicios(){
+			var xmlobj = new XMLHttpRequest()
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+						//var obj=JSON.parse(xmlobj.responseText);
+						bootbox.alert(xmlobj.responseText)													
+					}else
+						bootbox.alert("Error al actualizar servicio");							
+				}
+			}
+			var params="servicios=";
+			for(var i =0;i<select_mis_servicios.options.length;i++){
+				params=params+select_mis_servicios.options.item(i).value+"-";
+			}
+			params=params+"fin";
+			xmlobj.open('POST','/usuario_admin/actualizar_servicios',true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');					
+			xmlobj.send(params);	
+
+		}
+		function seleccionar_caracteristica(){
+			var nombre = select_atributos.options.item(select_atributos.options.selectedIndex).innerHTML
+			limpiar_select(select_valores)
+			for(var i in array_valores){
+				var categoria = array_valores[i].value.split(",")[1]
+				if(categoria==nombre){
+					select_valores.add(array_valores[i])
+				}
+			}
+			//bootbox.alert(select_atributos.value)
+		}
+		function crear_atributo_global(){
+			bootbox.prompt("Nueva caracteristica", function(result) {								
+				if (result != null) {																						 													
+					var xmlobj = new XMLHttpRequest();											
+					xmlobj.onreadystatechange = function(){			
+						if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+							if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+								var obj=JSON.parse(xmlobj.responseText);
+								alert(xmlobj.responseText)		
+								var option= document.createElement('option')
+								option.value=valor_insert(obj)
+								option.innerHTML=result
+								select_atributos_todos.add(option)
+
+							}else
+								alert("Error al agregar servicio");							
+						}
+					}
+					var params="nombre="+result;
+					xmlobj.open('POST','/usuario_admin/crear_atributo',true);
+					xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');					
+					xmlobj.send(params);	
+				}
+			});
+		}
+		function dialogo_caracteristicas(sele){
+			var formulario ='<div id="DivCaracteristicasTodas">\
+					  <div class="panel panel-info">\
+					    <div style="background-color:#CEF6CE" class="panel-heading">\
+					      <h5>Todas las Caracteristicas</h5>\
+					    </div>\
+					    <div class="panel-body">\
+					      <div class="list-group">\
+					      '+sele+'\
+					      </div>\
+					      <button class="btn-success" onClick="crear_atributo_global()"> Agregar otra</button>\
+					    </div>\
+					  </div>\
+					</div>'
+			bootbox.dialog({
+			  message: formulario,
+				title: "Agregar",
+				buttons: {
+					main: {
+						label: "Aceptar",
+						className: "btn-primary",
+						callback: function() {
+							var id_atributo=select_atributos_todos.value
+							var nombre=select_atributos_todos.options.item(select_atributos_todos.options.selectedIndex).innerHTML
+								bootbox.prompt("Valor de "+nombre,function(result){
+									if (result != null) {																						 													
+										var xmlobj = new XMLHttpRequest();
+										xmlobj.onreadystatechange = function(){			
+											if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+												if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+													var obj=JSON.parse(xmlobj.responseText);
+													alert(xmlobj.responseText)		
+													var option= document.createElement('option')
+													option.value=valor_insert(obj)+","+nombre
+													option.innerHTML="0 "+result												
+													option.className='list-group-item';													
+													array_valores.push(option)
+
+												}else
+													alert("Error al agregar servicio");							
+											}
+										}
+										var params="id_atributo="+id_atributo+"&cantidad=0&valor="+result;
+										xmlobj.open('POST','/usuario_admin/insertar_valor',true);
+										xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');					
+										xmlobj.send(params);	
+									}
+								})
+						}
+					},
+					danger: {
+						label: "Cancelar",
+						className: "btn-danger",
+						callback: function() {							
+						}
+					}					
+				}
+			});
+		}
+		function btn_agregar_caracteristica_mia(){
+			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
+			var xmlobj = new XMLHttpRequest();														
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
+						var obj=JSON.parse(xmlobj.responseText);
+						var sele='<select id="select_atributos_todos" size="6" style="width:100%" class="input-group-lg">'						
+						for(var i =5;i<obj.length;i++){
+							if(obj[i].dimension==0){								
+								sele=sele+'<option value="'+obj[i].id+'">'+obj[i].nombre+'</option>'
+							}
+						}
+						sele=sele+'</select>'
+						dialogo_caracteristicas(sele);
+					}else{
+						alert("Error al cargar caracteristicas");
+					}
+				}
+			};			
+			xmlobj.open('POST', '/usuario_admin/cargar_caracteristicas_todas',true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send();
+			
+		}
+		
+
 block body
 	div.container
 		br
@@ -83,15 +386,15 @@ block body
 		div(class="jumbotron")
 			h1 Bienvenido administrador	#{username}	
 		if tiene_establecimiento==1
-			.container				
-				.row				
+			.container
+				.row
 					.col-sm-2(style='background-color:lavender;')
 						h2 Administrar
-						ul.list-group							
-							a.list-group-item(onClick="administrar_general();")								
+						ul.list-group
+							a.list-group-item(onClick="administrar_general();")
 								| General
 							a.list-group-item(onClick="administrar_servicios();")
-								span.badge 5
+								span.badge(id="badge_servicios") 5
 								| Servicios
 							a.list-group-item(onClick="administrar_caracteristicas();")
 								span.badge 14
@@ -100,22 +403,135 @@ block body
 								span.badge 3
 								| Dimensiones				
 
-					.col-sm-7
+					.col-sm-8
 						div(name="area_administrar" id="area_administrar")
-							| Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-							| doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-							| veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-							
-					.col-sm-3(style='background-color:lavenderblush;')
+							div(id="area_general" name="area_general" style='display:none')
+								.container
+									form(name='FormCrearEstablecimiento', action='/usuario_admin/actualizar_general', method='POST', accept-charset='utf-8')
+										.row
+											.col-sm-7
+												h2(align='lesft')
+													strong Información General
+												.row
+													.col-sm-3(align='right')
+														label(for='nombre', style='padding:5px') Nombre:
+													.col-sm-9
+														input.form-control(type='text', id="nombre_general", name='nombre', value="'+tuplas[0].valor+'")
+												.row
+													.col-sm-3(align='right')
+														label(for='tipo_establecimiento', style='padding:5px') Tipo:
+													.col-sm-7
+														div(style='padding:5px')
+															!{tipos_establecimientos}
+													.col-sm-2
+														div(style='padding:5px', align='left')
+															button.btn.btn-sm.btn-success(type='button', onclick='agregar_tipo();') agregar
+												.row
+													.col-sm-3(align='right')
+														label(for='descripsion', style='padding:5px') Descripción:
+													.col-sm-9
+														div(style='padding:2px')
+															textarea.form-control(name='descripsion' id='descripsion_general') '+tuplas[4].valor+' 
+												.row
+													.col-sm-3(align='right')
+														label(for='longitud', style='padding:5px') Longitud:
+													.col-sm-2
+														input.form-control(type='number',step='any',id='longitud' ,name='longitud', style='width:115px', value="'+tuplas[1].valor+'")
+													.col-sm-2(align='right')
+														label(for='latitud', style='padding:5px 5px 5px 35px') Latitud:
+													.col-sm-2
+														input.form-control(type='number',step='any',id='latitud', name='latitud', style='width:115px', value="'+tuplas[2].valor+'")
+												.row
+													.col-sm-9
+													.col-sm-3
+														div(align='right', style='padding:5px')
+															input.btn.btn-primary(type='submit', value='Guardar', style='width:100%')
+							div(id="area_servicios" name="area_servicios" style='display:none')
+								.container																		
+									.row
+										.col-sm-8
+											h2
+												strong Administrar Servicios
+											.row
+												.col-sm-4(align='center')
+													.panel.panel-info
+														.panel-heading(style='background-color:#A9D0F5;')
+															h3.panel-title Todos los servicios
+														.panel-body
+															.list-group
+																select.input-group-lg(id='select_servicios_todos' name='select_servicios_todos' size='7', style='width:100%')
+																	option.list-group-item item																		
+																	
+												.col-sm-3(align='center')
+													div(style='padding: 10px 0px 0px 0px')
+														.row
+															.col-sm-4
+																button.btn.btn-sm.btn-success(name='btn_crear_servicio', style='width:35px', onclick='agregar_servicio();') + 
+															.col-sm-4
+																button.btn.btn-sm.btn-default(type="button",onClick='btn_sumar_servicio();', style='width:35px;background-color:#E0F8F7;') >>												
+															.col-sm-4
+																button.btn.btn-sm.btn-danger(onClick='btn_restar_servicio()', style='width:35px;') -
+																div(style='padding: 10px 0px 0px 0px')
+																	button.btn.btn-sm.btn-warning(onClick='btn_definir_porcentaje()', style='width:35px;') %
+												
+												.col-sm-4(align='center')
+													.panel.panel-info
+														.panel-heading(style='background-color:#E0F8F7;')
+															h3.panel-title Mis Servicios
+														.panel-body
+															.list-group
+																select.input-group-lg(size='7', style='width:100%', id='select_mis_servicios',name='select_mis_servicios', onChange="seleccionar_servicio()")
+															div(align="right" id="div_total")																
+													div(align='right', style='padding:5px')															
+														button.btn.btn-primary(onClick='actualizar_servicios()', style='width:100%',id='btn_guardar_servicios') Guardar
+												
+							div(id="area_caracteristicas" name="area_caracteristicas" style='display:none')
+								.container									
+									.row
+										.col-sm-3										
+											.panel.panel-info
+												.panel-heading
+													h5
+														strong Mis Caracteristicas
+												.panel-body
+													.list-group
+														select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')
+													div(align="right")
+														button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia()') Agregar
+										.col-sm-4										
+											.panel.panel-info
+												.panel-heading
+													h5 Valores
+												.panel-body
+													.list-group
+														select.input-group-lg(id="select_valores"  size="6",style="width:100%")
+													div(align="right")										
+														button.btn.btn-sm.btn-danger(onClick='btn_restar_servicio()') Eliminar
+														br
+									.row
+										.col-sm-12
+											.row
+												.col-sm-7			
+													
+															
+															
+
+							div(id="area_dimensiones" name="area_dimensiones" style='display:none')
+								label dimensiones							
+							div(id="area_bienvenida" name="area_bienvenida")
+								div.alert.alert-info Esta area es para 
+									strong administrar 
+									|las caracteristicas y servicios									
+					.col-sm-2(style='background-color:lavenderblush;')
 						div(name="area_consultar" id="area_consultar")
 
 						
 
 		else			
-			.container				
+			.container
 					form(name='FormCrearEstablecimiento', action='/usuario_admin/crear', method='POST', accept-charset='utf-8')
 						.row
-							.col-sm-6
+							.col-sm-12
 								h2(align='center') 
 									Strong Crea tu Establecimiento!
 								.row
@@ -127,17 +543,13 @@ block body
 									.col-sm-3(align="right")
 										label(for='tipo_establecimiento',style='padding:5px') Tipo:
 									.col-sm-5
-										div(style="padding:5px")
-											select.form-control(type="select")
-												option mi opcion1
-												option(selected) mi opcion
-												option mi opcio
+										!{tipos_establecimientos}
 									.col-sm-2
 										div(style="padding:5px",align="left")
-											button.btn.btn-sm.btn-success(type="button"  onClick="agregar_tipo();") agregar
+											button.btn.btn-sm.btn-success(type="button",onClick="agregar_tipo();") agregar
 								.row
 									.col-sm-3(align="right")
-										label(for='descripsion',style='padding:5px') Descripc	ión:
+										label(for='descripsion',style='padding:5px') Descripción:
 									.col-sm-7
 										div(style='padding:2px')
 											textarea.form-control(name='descripsion')								
@@ -145,11 +557,11 @@ block body
 									.col-sm-3(align="right")																	
 										label(for='longitud',style='padding:5px') Longitud:
 									.col-sm-2
-										input.form-control(type='number', name='longitud',style="width:115px")
+										input.form-control(type='number',step='any', name='longitud',style="width:115px")
 									.col-sm-2(align="right")							
 										label(for='latitud',style='padding:5px 5px 5px 35px') Latitud:
 									.col-sm-2
-										input.form-control(type='number', name='latitud', style="width:115px")
+										input.form-control(type='number',step='any', name='latitud', style="width:115px")
 								.row
 									.col-sm-7
 									.col-sm-3
