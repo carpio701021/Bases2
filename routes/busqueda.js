@@ -28,13 +28,14 @@ var generar_options = function(establecimientos) {
 		var b = false;
 		if (ests[e].tipo != group) {
 			b = true;
+			group = ests[e].tipo;
+			if (b && group != '') h += '</optgroup>'
 			h += "<optgroup label='" + ests[e].tipo + "'>";
 		}
 		h += "<option value='" + ests[e].id + "' title='" + (JSON.stringify(ests[e])).replace(new RegExp('"', 'g'), '&quot;') + "'  >";
 		h += ests[e].establecimiento;
 		//option(value='3', title='{"id":2,"tipo":"Hotel","establecimiento":"Hotel Conquistador and Conference Center Guatemalas","tags":["Comida","Conferencias","Hospedaje"]}') putos
 		h += '</option>'
-		if (b) h += '</optgroup>'
 	}
 	h += '</optgroup>'
 	return h;

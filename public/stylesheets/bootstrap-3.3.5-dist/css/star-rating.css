@@ -80,7 +80,13 @@
     top: 0;
     white-space: nowrap;
     overflow: hidden;
-    color: #fde16d;
+
+
+    color: orange;
+    -webkit-text-fill-color: black;
+    -webkit-text-stroke: 2px orange;
+  
+
     transition: all 0.25s ease-out;
     -o-transition: all 0.25s ease-out;
     -moz-transition: all 0.25s ease-out;
