@@ -27,28 +27,7 @@ html
 						li
 							a
 								.select2-wrapper
-									select.form-control.select2(multiple='multiple',style="width:380px;")
-										option
-										optgroup(label='Cracks/Hawaiian Time Zone')
-											option(value='0') Abel
-											option(value='HI') Chino
-										optgroup(label='Super crack')
-											option(value='CA') Carpio
-											option(value='NV') Julio		
-											
-									script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
-									script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
-									script.
-										$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 6 } );
-										$( ":checkbox" ).on( "click", function() {
-										$( this ).parent().nextAll( "select" ).select2( "enable", this.checked );
-										});
-										$( "#demonstrations" ).select2( { placeholder: "Select2 version", minimumResultsForSearch: -1 } ).on( "change", function() {
-										document.location = $( this ).find( ":selected" ).val();
-										} );
-										$( "button[data-select2-open]" ).click( function() {
-										$( "#" + $( this ).data( "select2-open" ) ).select2( "open" );
-										});
+									include ../buscador.jade
 						li
 							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar						
 						li.dropdown
@@ -75,6 +54,7 @@ html
 		block finalito
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/bootstrap.min.js')			
+			script(src='/stylesheets/bootstrap-3.3.5-dist/js/bootbox.min.js')			
 			//script(src='/stylesheets/bootstrap-3.3.5-dist/js/npm.js')
 			script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
 			script(src="/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js")
