@@ -4,9 +4,52 @@ block scripts
 	script(src='https://maps.googleapis.com/maps/api/js')
 	script var atributos = !{JSON.stringify(atributos)};
 	script.
+
+		function reservar () {
+			bootbox.alert("Hola");
+		}
+
+		function getQueryVariable(variable) {
+			var query = window.location.search.substring(1);
+			var vars = query.split("&");
+			for (var i=0;i<vars.length;i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == variable) {
+					return pair[1];
+				}
+			} 
+			console.log('Query Variable ' + variable + ' not found');
+		}
+
+		function enviar_calificacion(idServicio, punteo){
+			console.log(window.location);
+			var idEstablecimiento = getQueryVariable('id');
+			var dataToSend = 'idEstablecimiento=' + idEstablecimiento + '&'
+				+ 'idServicio=' + idServicio + '&'
+				+ 'punteo=' + punteo ;
+			
+			//idUsuario, punteo, fecha);			
+			var xmlobj = new XMLHttpRequest();											
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+						//alert("calificacion exitosa:\n" + xmlobj.responseText);
+					}else{
+						alert("Imposible cargar datos:\n" + xmlobj.responseText);
+						//caca.innerHTML=xmlobj.responseText;
+					}
+				}
+			};			
+			var path = '/establecimiento/calificar_servicio?' + dataToSend;
+			xmlobj.open('GET', path ,true);
+			//xmlobj.open('GET', '/',true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send();	
+		}
+
 		function initialize() {
 			var mapCanvas = document.getElementById('map');
-			var lat =  14.5457675;
+			var lat =	14.5457675;
 			var lon = -90.5549159;
 			//*
 			for(atrb in atributos){
@@ -20,33 +63,76 @@ block scripts
 					lon = parseFloat(atributos[atrb].valor) ;
 					break;
 				}
-			}//*/
-			//console.log( lat + ' | ' + lon);
+			}
 			var mapOptions = {
 				center: new google.maps.LatLng( lat , lon ),
 				zoom: 16,
 				mapTypeId: google.maps.MapTypeId.ROADMAP
 			}
+			var marker = new google.maps.Marker({
+					position: new google.maps.LatLng( lat , lon ),
+					icon: 'https://maps.google.com/mapfiles/kml/shapes/library_maps.png',
+					map: map
+				});
+
 			var map = new google.maps.Map(mapCanvas, mapOptions)
+			/*function addMarker(feature) {
+				var marker = new google.maps.Marker({
+					position: feature.position,
+					icon: 'https://maps.google.com/mapfiles/kml/shapes/library_maps.png',
+					map: map
+				});
+			}*/
+
 		}
 		google.maps.event.addDomListener(window, 'load', initialize);
 
 block body
+	div#caca
 	div.container
 		br
 		br
 		br
 		br
-		//div.panel.panel-primary
-		div.panel.panel-primary.panel-heading(style="text-align:center;")
-			each atrb in atributos
-				if atrb.nombre == 'Nombre'
-					font(style="font-size:55px;") #{atrb.valor} 
-			each atrb in atributos
-				if atrb.nombre == 'Oficial'
-					if atrb.valor != 0
-					span(style="padding:5px;")
-						font.label.label-danger(style="font-size:20px;") Sitio Oficial
+		div.panel.panel-primary.panel-heading
+			div(style="text-align:center;")
+				each atrb in atributos
+					if atrb.nombre == 'Nombre'
+						font(style="font-size:55px;") #{atrb.valor} 
+				each atrb in atributos
+					if atrb.nombre == 'Oficial'
+						if atrb.valor != 0
+						span(style="padding:5px;")
+							font.label.label-danger(style="font-size:20px;") Sitio Oficial
+			div(style="text-align:right;")
+				if punteo_general
+					- var g = '<input id="rating_general" data-symbol="&#9055" data-glyphicon="true" type="number" min="0" max="7" data-stars="7" value="';
+					- g += (punteo_general || '-1')
+					- g += '" class="rating" data-size="lg" style="align:center;width:100%"/>'
+					div !{g} 
+					script.
+						jQuery(document).ready(function () {
+							$( '#rating_general' ).rating({
+								starCaptions: function(val) {
+									return val + ' esferas del dragón';
+								},
+								starCaptionClasses: function(val) {
+										if(val == -1)	return 'label label-default';
+										if(val < 3)	return 'label label-danger';
+										if(val < 6)	return 'label label-warning';
+										return 'label label-success';
+								},
+								hoverOnClear: false,
+								disabled: false,
+								showClear: false,
+								showCaption: true,
+								clearCaptionClass: 'label label-danger',
+								clearCaption: '>> Sin calificacion <<',
+								clearValue: -1,
+								readonly: true								
+							});
+						});
+
 		div.panel.panel-primary
 			div.panel.panel-heading
 				font(style="font-size:25px;") Tags
@@ -54,19 +140,21 @@ block body
 				each atrb in atributos
 					if atrb.nombre == 'Latitud'
 						span(style="padding:15px;display:inline-block;")
-							font.label.label-default(style="font-size:20px;") Latitud: #{atrb.valor} 
+							font.btn.btn-default(style="font-size:20px;") Latitud: #{atrb.valor} 
 				each atrb in atributos
 					if atrb.nombre == 'Longitud'
 						span(style="padding:15px;display:inline-block;")
-							font.label.label-default(style="font-size:20px;") Longitud: #{atrb.valor} 
+							font.btn.btn-default(style="font-size:20px;") Longitud: #{atrb.valor} 
 				each atrb in atributos
 					if atrb.nombre == 'Descripcion'
 						span(style="padding:15px;display:inline-block;") 
-							font.label.label-success(style="font-size:20px;") #{atrb.valor}
+							font.btn.btn-success(style="font-size:20px;") #{atrb.valor} 
 				each atrb in atributos
 					if (atrb.nombre != 'Nombre' && atrb.nombre != 'Latitud' && atrb.nombre != 'Longitud' && atrb.nombre != 'Oficial' && atrb.nombre != 'Descripcion'	)
 						span(style="padding:15px;display:inline-block;") 
-							font.label.label-primary(style="font-size:20px;") #{atrb.nombre}: #{atrb.valor} 
+							font.btn.btn-primary(style="font-size:20px;", onClick='reservar();') #{atrb.nombre}: #{atrb.valor} 
+								if atrb.cantidad > 0
+									span.badge  #{atrb.cantidad}
 			
 
 			div.panel.panel-heading
@@ -80,16 +168,45 @@ block body
 					each serv in servicios
 						tr
 							td(style="font-size:15px;") #{serv.nombre}
-							if serv.punteo
-								td #{serv.punteo} 
-							else
-								td nada
-
+							td 
+								if serv
+									- var h = '<input id="rating_s'
+									- h += (serv.id || 'sin_id')
+									- h += '" data-symbol="&#9055" data-glyphicon="true" type="number" min="0" max="7" data-stars="7" value="';
+									- h += (serv.punteo || '-1')
+									- h += '" step="1" class="rating" data-size="lg" style="align:center;width:100%"/>'
+									div !{h}
+									script.
+										jQuery(document).ready(function () {
+											$( '#rating_s#{serv.id}' ).rating({
+												starCaptions: function(val) {
+													return val + ' esferas del dragón';
+												},
+												starCaptionClasses: function(val) {
+														if(val == -1)	return 'label label-default';
+														if(val < 3)	return 'label label-danger';
+														if(val < 6)	return 'label label-warning';
+														return 'label label-success';
+												},
+												hoverOnClear: false,
+												disabled: false,
+												showClear: false,
+												showCaption: true,
+												clearCaptionClass: 'label label-danger',
+												clearCaption: '>> Sin calificacion <<',
+												clearValue: -1										
+											});
+											$('#rating_s#{serv.id}').on('rating.change', function() {
+												enviar_calificacion(#{serv.id}, $('#rating_s#{serv.id}').val())
+											});
+										});
+										
 
 
 			div.panel.panel-heading
 				font(style="font-size:25px;") Mapa 
 			div.panel.panel-body
+				p el mapa va aqui (descomentar del código)
 				div(id="map")
 
 
@@ -98,6 +215,28 @@ block body
 			div.panel.panel-heading
 				font(style="font-size:25px;") Comentarios 
 			div.panel.panel-body
-				div Muchos comentarios
+				form(name='login', action='/establecimiento/comentar', method='POST', accept-charset='utf-8')
+					.row
+						.col-sm-1
+							.thumbnail
+								img.img-responsive.user-photo(src='/stylesheets/bootstrap-3.3.5-dist/img/avatar_2x.png')
+						.col-sm-8
+							textarea.form-control(name='comentario',type='text', placeholder='Deja tu comentario...')
+							input(type='text',name='establecimiento', style='display:none', value="#{establecimiento}") 
+						.col-sm-3
+							button.btn.btn-default Comentar
+
+				for com in comentarios
+					.row
+						.col-sm-1
+							.thumbnail
+								img.img-responsive.user-photo(src='/stylesheets/bootstrap-3.3.5-dist/img/avatar_2x.png')
+						.col-sm-10
+							.panel.panel-default
+								.panel-heading
+									strong #{com.usuario}
+									span.text-muted.pull-right  #{com.fecha}
+								.panel-body
+									| #{com.comentario}
 
 

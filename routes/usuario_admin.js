@@ -119,8 +119,7 @@ router.get('/', function(req, res, next) {
 		console.log(select_html);
 		res.render('usuario_admin/principal', { username: req.user_session.usuario,
 			tiene_establecimiento: val,
-			tipos_establecimientos: select_html,
-			icono: '<input id="rating-system" data-symbol="&#9055" data-glyphicon="true" type="number" min="1" max="7" data-stars="7" step="1" class="rating"/>'
+			tipos_establecimientos: select_html
 			});		
 	}
 
