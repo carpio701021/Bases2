@@ -55,7 +55,10 @@ block scripts
 			post_parametros('','/admin/bitacora');
 		}
 		function exportar_bd(){
-
+			post_parametros('','/admin/exportar');
+		}
+		function gestionar_exportar(){
+			
 		}
 
 block body
@@ -76,7 +79,7 @@ block body
 							| Usuarios Owner
 						a.list-group-item(onClick="gestionar_bitacora();")							
 							| Bitacora
-						a.list-group-item(onClick="exportar_bd();")							
+						a.list-group-item(onClick="gestionar_exportar();")							
 							| Exportar BD
 				.col-sm-8
 					div(id="area_usuarios" displaly='block')
@@ -149,6 +152,21 @@ block body
 								.panel-body
 									.list-group
 										select.input-group-lg(id="select_bitacora" size="10",style="width:100%")
+			.row
+				.col-sm-3
+				.col-sm-8
+					div(style="width:51%",align='center')
+						if error2					
+							.alert.alert-danger(role='alert')
+								strong #{error2}
+						if exito2					
+							.alert.alert-success(role='alert')
+								strong #{exito2}
+					
+					div(id="area_exportar" displaly='block')
+						h1(align='center') Exportar CSV										
+						div(style='padding:5px',align='center')
+							button.btn.btn-primary(type='button', onClick='exportar_bd()') Exportar							
 
 
 		

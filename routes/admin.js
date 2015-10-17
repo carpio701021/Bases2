@@ -35,6 +35,18 @@ router.post('/bitacora',function(req,res) {
 	// body...
 })
 
+router.post('/exportar',function(req,res) {
+	var dbconnection = require('../routes/dbconnection.js'); 
+	str_query='call Taran();'
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result)
+		},
+		res)
+	// body...
+})
+
 router.post('/registrar',function(req,res) {
 	var tipo_usuario=2;
 	var nombre= "'"+req.body.nombre+"'";
