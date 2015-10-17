@@ -1,0 +1,45 @@
+extends BaseUsuarioFinal
+
+block body
+	br
+	br
+	br
+	br
+	div(id="area_general" name="area_general" )
+		.container
+			form(name='FormCrearEstablecimiento', action='/establecimiento_nuevo/guardar', method='POST', accept-charset='utf-8')
+				.row
+					.col-sm-7
+						h2(align='lesft')
+							strong Crear establecimiento no oficial
+						.row
+							.col-sm-3(align='right')
+								label(for='nombre', style='padding:5px') Nombre:
+							.col-sm-9
+								input.form-control(type='text', id="nombre_general", name='nombre', value="")
+						.row
+							.col-sm-3(align='right')
+								label(for='tipo_establecimiento', style='padding:5px') Tipo:
+							.col-sm-7
+								div(style='padding:5px')
+									!{tipos_establecimientos}
+						.row
+							.col-sm-3(align='right')
+								label(for='descripsion', style='padding:5px') Descripción:
+							.col-sm-9
+								div(style='padding:2px')
+									textarea.form-control(name='descripsion' id='descripsion_general') 
+						.row
+							.col-sm-3(align='right')
+								label(for='longitud', style='padding:5px') Longitud:
+							.col-sm-2
+								input.form-control(type='number',step='any',id='longitud' ,name='longitud', style='width:115px', value="'+tuplas[1].valor+'")
+							.col-sm-2(align='right')
+								label(for='latitud', style='padding:5px 5px 5px 35px') Latitud:
+							.col-sm-2
+								input.form-control(type='number',step='any',id='latitud', name='latitud', style='width:115px', value="'+tuplas[2].valor+'")
+						.row
+							.col-sm-9
+							.col-sm-3
+								div(align='right', style='padding:5px')
+									input.btn.btn-primary(type='submit', value='Guardar', style='width:100%')

@@ -4,11 +4,6 @@ block scripts
 	script(src='https://maps.googleapis.com/maps/api/js')
 	script var atributos = !{JSON.stringify(atributos)};
 	script.
-
-		function reservar () {
-			bootbox.alert("Hola");
-		}
-
 		function getQueryVariable(variable) {
 			var query = window.location.search.substring(1);
 			var vars = query.split("&");
@@ -27,6 +22,8 @@ block scripts
 			var dataToSend = 'idEstablecimiento=' + idEstablecimiento + '&'
 				+ 'idServicio=' + idServicio + '&'
 				+ 'punteo=' + punteo ;
+
+
 			
 			//idUsuario, punteo, fecha);			
 			var xmlobj = new XMLHttpRequest();											
@@ -87,6 +84,46 @@ block scripts
 		}
 		google.maps.event.addDomListener(window, 'load', initialize);
 
+		function reservar (idValor) {
+			
+		}
+
+		function obtener_formulario_reservacion(idValor){
+			var idEstablecimiento = getQueryVariable('id');
+			var nombre = '';
+			var valor = '';
+			var cantidad = 0;
+			for(atrb in atributos){
+				if(atributos[atrb].idValor == idValor){
+					nombre = atributos[atrb].nombre;
+					valor = atributos[atrb].valor;
+					cantidad = atributos[atrb].cantidad;
+					break;
+				}
+			}
+			var dataToSend = 'idEstablecimiento=' + idEstablecimiento + '&'
+				+ 'idValor=' + idValor + '&'
+				+ 'nombre=' + nombre + '&'
+				+ 'valor=' + valor + '&'
+				+ 'cantidad=' + cantidad;
+			var xmlobj = new XMLHttpRequest();											
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
+						bootbox.alert(xmlobj.responseText);
+					}else{
+						bootbox.alert("Imposible cargar Formulario:\n" + xmlobj.responseText);
+						//caca.innerHTML=xmlobj.responseText;
+					}
+				}
+			};			
+			var path = '/establecimiento/plantilla_reservacion?' + dataToSend;
+			xmlobj.open('GET', path ,true);
+			//xmlobj.open('GET', '/',true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send();	
+		}
+
 block body
 	div#caca
 	div.container
@@ -101,9 +138,13 @@ block body
 						font(style="font-size:55px;") #{atrb.valor} 
 				each atrb in atributos
 					if atrb.nombre == 'Oficial'
-						if atrb.valor != 0
-						span(style="padding:5px;")
-							font.label.label-danger(style="font-size:20px;") Sitio Oficial
+						if atrb.valor != 0 && atrb.valor != '0'
+							span(style="padding:5px;")
+								font.label.label-danger(style="font-size:20px;") Sitio Oficial
+						else
+							span(style="padding:5px;")
+								font.label.label-danger(style="font-size:20px;") Sitio No Oficial
+
 			div(style="text-align:right;")
 				if punteo_general
 					- var g = '<input id="rating_general" data-symbol="&#9055" data-glyphicon="true" type="number" min="0" max="7" data-stars="7" value="';
@@ -152,9 +193,11 @@ block body
 				each atrb in atributos
 					if (atrb.nombre != 'Nombre' && atrb.nombre != 'Latitud' && atrb.nombre != 'Longitud' && atrb.nombre != 'Oficial' && atrb.nombre != 'Descripcion'	)
 						span(style="padding:15px;display:inline-block;") 
-							font.btn.btn-primary(style="font-size:20px;", onClick='reservar();') #{atrb.nombre}: #{atrb.valor} 
 								if atrb.cantidad > 0
-									span.badge  #{atrb.cantidad}
+									font.btn.btn-primary(style="font-size:20px;", onClick='obtener_formulario_reservacion(#{atrb.idValor});') #{atrb.nombre}: #{atrb.valor} 
+										span.badge  #{atrb.cantidad}
+								else
+									font.btn.btn-primary(style="font-size:20px;") #{atrb.nombre}: #{atrb.valor} 
 			
 
 			div.panel.panel-heading

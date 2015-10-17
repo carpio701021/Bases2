@@ -1,0 +1,24 @@
+form(name='FormRegistrar', action='/establecimiento/reservar', method='POST', accept-charset='utf-8')
+	h1 Reservacion de #{nombre} (#{valor})
+	div.invisibles(style='display:none;')
+		input(name='idEstablecimiento',type='text',value='#{idEstablecimiento}') 
+		input(name='idValor',type='text',value='#{idValor}') 
+	table
+		tr
+			td(style='padding:7px;')
+				label(for='cantidad') Cantidad a reservar (Máximo #{cantidad}):
+			td(style='padding:7px;')
+				input(id='cantidad',name='cantidad',type='number',min='1',max='#{cantidad}',value='1')
+		tr
+			td(style='padding:7px;')
+				label(for='fhi') Fecha y hora de inicio:
+			td(style='padding:7px;')
+				input(id='fhi',name='fhi',type='datetime-local')
+		tr
+			td(style='padding:7px;')
+				label(for='fhf') Fecha y hora de Finalización:
+			td(style='padding:7px;')
+				input(id='fhf',name='fhf',type='datetime-local')
+	
+	input.btn.btn-primary(type='submit', value='Reservar')
+
