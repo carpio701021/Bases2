@@ -213,6 +213,17 @@ router.post('/actualizar_servicios', function(req, res, next) {
 
 });
 
+router.post('/cargar_dimensiones',function(req,res,next){	
+	var dbconnection = require('../routes/dbconnection.js'); 	
+	var str_query = "call selectAtributosOwner("+req.user_session.id+");";
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result)
+		},
+		res);	
+});
+
 router.post('/cargar_servicios', function(req, res, next) {
 
 	var user = req.user_session.id;
@@ -268,6 +279,8 @@ router.post('/cargar_caracteristicas',function(req,res,next){
 			res);
 	}
 });
+
+
 
 router.post('/cargar_caracteristicas_todas', function(req, res, next) {
 	var dbconnection = require('../routes/dbconnection.js');

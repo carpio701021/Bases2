@@ -97,6 +97,19 @@ block scripts
 								array_valores.push(option)
 							}
 						}
+						if(area=='dimensiones'){																	
+							limpiar_select(select_dimensiones)										
+							for(var i =0 ;i< obj[0].length;i++){																
+								if(obj[0][i].dimension==1){											
+									var option = document.createElement('option');
+									option.value=obj[0][i]['idValor']+","+obj[0][i]['valor']
+									option.innerHTML=obj[0][i]['nombre'];
+									option.className='list-group-item';
+									select_dimensiones.add(option)
+								}
+							}
+							badge_dimensiones.innerHTML=select_dimensiones.options.length							
+						}
 					}else{
 						alert("Imposible cargar datos");
 					}
@@ -143,6 +156,7 @@ block scripts
 		function administrar_dimensiones(){
 			desaparecer_areas();
 			area_dimensiones.style.display='block'
+			mandar_post('/usuario_admin/cargar_dimensiones','dimensiones')
 			//area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
 		}
 		
@@ -151,7 +165,8 @@ block scripts
 			var val =select_mis_servicios.value.split(",")
 			var Nombre =select_mis_servicios.options.item(select_mis_servicios.options.selectedIndex).innerHTML;
 			area_consultar.innerHTML='<h3> id:'+val[0]+" "+ Nombre.split("% ")[1]+'</h3>'
-			//area_consultar.innerHTML="<h1> "+obj["id"]+obj["calificacion"]+obj["nombre"]+"</h1>"
+			
+			//area_consultar.innerHTML="<h1> "+obj["id"]+obj["calificacion"]+obj["nombre"]+"</h1>"			
 		}
 		function btn_definir_porcentaje(){
 			var opt = select_mis_servicios.options.item(select_mis_servicios.options.selectedIndex)
@@ -293,6 +308,7 @@ block scripts
 				}
 			});
 		}
+		
 		function dialogo_caracteristicas(sele){
 			var formulario ='<div id="DivCaracteristicasTodas">\
 					  <div class="panel panel-info">\
@@ -352,7 +368,7 @@ block scripts
 				}
 			});
 		}
-		function btn_agregar_caracteristica_mia(){
+		function btn_agregar_caracteristica_mia(dim){
 			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
 			var xmlobj = new XMLHttpRequest();														
 			xmlobj.onreadystatechange = function(){			
@@ -361,12 +377,15 @@ block scripts
 						var obj=JSON.parse(xmlobj.responseText);
 						var sele='<select id="select_atributos_todos" size="6" style="width:100%" class="input-group-lg">'						
 						for(var i =5;i<obj.length;i++){
-							if(obj[i].dimension==0){								
+							if(obj[i].dimension==dim){								//0 o 1
 								sele=sele+'<option class="list-group-item" value="'+obj[i].id+'">'+obj[i].nombre+'</option>'
 							}
 						}
 						sele=sele+'</select>'
-						dialogo_caracteristicas(sele);
+						if(dim==0)
+							dialogo_caracteristicas(sele);
+						if(dim==1)
+							dialogo_dimensiones(sele);
 					}else{
 						alert("Error al cargar caracteristicas");
 					}
@@ -377,6 +396,62 @@ block scripts
 			xmlobj.send();
 			
 		}
+		function crear_dim_global(){
+			bootbox.prompt("Nueva dimension",function(result){
+				if(result!=null){					
+								//alert(xmlobj.responseText)		
+					var option= document.createElement('option')
+					option.value=valor_insert(obj)
+					option.innerHTML=result
+					option.className="list-group-item"
+					select_atributos_todos.add(option)
+					post_parametros("nombre="+result,'/usuario_admin/crear_atributo')
+
+				}
+				})			
+		}
+		function dialogo_dimensiones(sele){
+			var formulario ='<div id="DivCaracteristicasTodas">\
+					  <div class="panel panel-info">\
+					    <div style="background-color:#CEF6CE" class="panel-heading">\
+					      <h5>Todas las dimensiones</h5>\
+					    </div>\
+					    <div class="panel-body">\
+					      <div class="list-group">\
+					      '+sele+'\
+					      </div>\
+					      <button class="btn btn-success" onClick="crear_dim_global()"> Agregar otra</button>\
+					    </div>\
+					  </div>\
+					</div>'
+			bootbox.dialog({
+			  message: formulario,
+				title: "Agregar dimension",
+				buttons: {
+					main: {
+						label: "Aceptar",
+						className: "btn-primary",
+						callback: function() {
+							var id_atributo=select_atributos_todos.value
+							var nombre=select_atributos_todos.options.item(select_atributos_todos.options.selectedIndex).innerHTML
+								bootbox.prompt("Valor de "+nombre,function(result){
+									if (result != null) {															
+										var params="id_atributo="+id_atributo+"&cantidad=0&valor="+result;
+										post_parametros(params,'usuario_admin/insertar_valor')										
+									}
+								})
+						}
+					},
+					danger: {
+						label: "Cancelar",
+						className: "btn-danger",
+						callback: function() {							
+						}
+					}					
+				}
+			});
+		}
+
 		function post_parametros(data_to_send,ruta){
 			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
 			var xmlobj = new XMLHttpRequest();														
@@ -443,6 +518,20 @@ block scripts
 						post_parametros(data,'/usuario_admin/insertar_valor');
 					}					
 				});			
+		}
+		function seleccionar_dimension(){
+			var valor = select_dimensiones.value.split(",")[1]
+			cuerpo_panel_valor.innerHTML=valor;
+		}
+
+		function btn_eliminar_dim(){
+			post_parametros("id_valor="+select_dimensiones.value.split(",")[0],'usuario_admin/eliminar_valor');
+			administrar_dimensiones();
+			select_dimensiones.remove(select_dimensiones.options.selectedIndex)
+		}
+
+		function btn_agregar_dimension_mia(){
+
 		}
 
 block body
@@ -566,7 +655,7 @@ block body
 													.list-group
 														select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')															
 													div(align="right")
-														button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia()') Agregar
+														button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia(0)') Agregar
 										.col-sm-4										
 											.panel.panel-info
 												.panel-heading
@@ -596,11 +685,11 @@ block body
 														strong Mis dimensiones
 												.panel-body
 													.list-group
-														select.input-group-lg(id="select_dimensiones" size="6",style="width:100%",onChange='seleccionar_caracteristica()')
+														select.input-group-lg(id="select_dimensiones" size="6",style="width:100%",onChange='seleccionar_dimension()')
 													div(align="right")
 														.row
 															.col-sm-4
-																button.btn.btn-sm.btn-success(onclick='btn_agregar_dimension_mia()') Agregar
+																button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia(1)') Agregar
 															.col-sm-3									
 																button.btn.btn-sm.btn-danger(onClick='btn_eliminar_dim()') Eliminar
 										.col-sm-4										
@@ -608,12 +697,8 @@ block body
 												.panel-heading
 													h5(id="encabezado_valor_dimension") Valores
 												.panel-body
-													h3 valor														
-													div(align="right")
-														.row
-															.col-sm-4									
-																button.btn.btn-sm.btn-success(onClick='btn_agregar_valor()') Agregar Valor																													
-																br															
+													h3(id="cuerpo_panel_valor") valor														
+																									
 																						
 																				
 							div(id="area_bienvenida" name="area_bienvenida")

@@ -22,6 +22,19 @@ var valor_insert = function(entrada){
 	return val
 }
 
+
+router.post('/bitacora',function(req,res) {
+	var dbconnection = require('../routes/dbconnection.js'); 
+	str_query='call selectBitacora();'
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result)
+		},
+		res)
+	// body...
+})
+
 router.post('/registrar',function(req,res) {
 	var tipo_usuario=2;
 	var nombre= "'"+req.body.nombre+"'";
@@ -34,12 +47,13 @@ router.post('/registrar',function(req,res) {
 	console.log(req.body.genero)
 	console.log("nom "+nombre+" mail: "+correo+" usern:"+username+" pas:"+pass+" tel:"+tel+" fecha:"+FechaNacimiento+" gen:"+genero);
 	function registrar_usuario(exito){		
+
 		if(valor_insert(exito)!='0'){
-			res.render('/admin', { 				
+			res.render('admin/principal', { 				
 				exito2: 'Usuario registrado con exito'
 			});
 		}else{
-			res.render('/admin', { 				
+			res.render('admin/principal', { 				
 				error2: 'Ocurrió un problema para registrar usuario'				
 			});
 		}
