@@ -238,6 +238,7 @@ router.post('/cargar_servicios',function(req,res,next){
 
 
 
+
 router.post('/cargar_caracteristicas',function(req,res,next){
 	var user= req.user_session.id;	
 	var dbconnection = require('../routes/dbconnection.js'); 	
@@ -268,6 +269,29 @@ router.post('/cargar_caracteristicas_todas',function(req,res,next){
 			},
 			res);    		
 });
+
+router.post('/actualizar_valor',function(req,res,next){	
+	var dbconnection = require('../routes/dbconnection.js'); 		
+	var str_query = "call updateValor("+req.body.id_valor+","+req.body.cantidad+")";
+	dbconnection.exe_query(
+			str_query, 
+			function(data){
+				res.send(data)
+			},
+			res);    		
+});
+
+router.post('/eliminar_valor',function(req,res,next){	
+	var dbconnection = require('../routes/dbconnection.js'); 		
+	var str_query = "select deleteValor("+req.body.id_valor+")";
+	dbconnection.exe_query(
+			str_query, 
+			function(data){
+				res.send(data)
+			},
+			res);    		
+});
+
 
 router.post('/cargar_general',function(req,res,next){
 	var user= req.user_session.id;	

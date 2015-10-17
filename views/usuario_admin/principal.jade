@@ -43,7 +43,7 @@ block scripts
 				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
 						var obj=JSON.parse(xmlobj.responseText);
-						alert(xmlobj.responseText)
+						//alert(xmlobj.responseText)
 						if(area=='general'){							
 							nombre_general.value=obj[0][0].valor;
 							descripsion_general.value=obj[0][4].valor;
@@ -87,6 +87,7 @@ block scripts
 									select_atributos.add(option)
 								}
 							}
+							badge_caracteristicas.innerHTML=select_atributos.options.length
 							array_valores=[]
 							for(var i=5; i<valores.length;i++){
 								var option = document.createElement('option');
@@ -201,9 +202,9 @@ block scripts
 						if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 							if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
 								var obj=JSON.parse(xmlobj.responseText);
-								alert(xmlobj.responseText)												
+								//alert(xmlobj.responseText)												
 								var val2 = valor_insert(obj)							
-								alert(val2)
+								//alert(val2)
 								if(val2>0){
 									var option = document.createElement('option')
 									option.value=val2
@@ -239,7 +240,7 @@ block scripts
 				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
 						//var obj=JSON.parse(xmlobj.responseText);
-						bootbox.alert(xmlobj.responseText)													
+						//bootbox.alert(xmlobj.responseText)													
 					}else
 						bootbox.alert("Error al actualizar servicio");							
 				}
@@ -263,6 +264,8 @@ block scripts
 					select_valores.add(array_valores[i])
 				}
 			}
+			encabezado_valores.innerHTML="Valores "+ nombre
+
 			//bootbox.alert(select_atributos.value)
 		}
 		function crear_atributo_global(){
@@ -273,7 +276,7 @@ block scripts
 						if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 							if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
 								var obj=JSON.parse(xmlobj.responseText);
-								alert(xmlobj.responseText)		
+								//alert(xmlobj.responseText)		
 								var option= document.createElement('option')
 								option.value=valor_insert(obj)
 								option.innerHTML=result
@@ -300,7 +303,7 @@ block scripts
 					      <div class="list-group">\
 					      '+sele+'\
 					      </div>\
-					      <button class="btn-success" onClick="crear_atributo_global()"> Agregar otra</button>\
+					      <button class="btn btn-success" onClick="crear_atributo_global()"> Agregar otra</button>\
 					    </div>\
 					  </div>\
 					</div>'
@@ -321,7 +324,7 @@ block scripts
 											if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 												if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito														
 													var obj=JSON.parse(xmlobj.responseText);
-													alert(xmlobj.responseText)		
+													//alert(xmlobj.responseText)		
 													var option= document.createElement('option')
 													option.value=valor_insert(obj)+","+nombre
 													option.innerHTML="0 "+result												
@@ -359,7 +362,7 @@ block scripts
 						var sele='<select id="select_atributos_todos" size="6" style="width:100%" class="input-group-lg">'						
 						for(var i =5;i<obj.length;i++){
 							if(obj[i].dimension==0){								
-								sele=sele+'<option value="'+obj[i].id+'">'+obj[i].nombre+'</option>'
+								sele=sele+'<option class="list-group-item" value="'+obj[i].id+'">'+obj[i].nombre+'</option>'
 							}
 						}
 						sele=sele+'</select>'
@@ -374,7 +377,73 @@ block scripts
 			xmlobj.send();
 			
 		}
-		
+		function post_parametros(data_to_send,ruta){
+			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
+			var xmlobj = new XMLHttpRequest();														
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
+						var obj=JSON.parse(xmlobj.responseText);
+						alert(xmlobj.responseText)
+						if(ruta=='/usuario_admin/insertar_valor'){
+							administrar_caracteristicas();	
+							var option = document.createElement('option')
+							option.value=valor_insert(obj)
+							option.innerHTML="0 "+ data_to_send.split("=")[2]
+							option.className='list-group-item'
+							select_valores.add(option)												
+						}
+					}else{
+						alert("Error al cargar caracteristicas");
+					}
+				}
+			};			
+			xmlobj.open('POST', ruta,true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send(data_to_send);
+			
+		}
+		function btn_cantidad_valor(){
+			var val=select_valores.value.split(",")		
+			bootbox.dialog({
+				message:"<label>Cantidad: </label><input type='number' id='input_cantidad' class='form-control'></input>",
+				title:'Cantidad',
+				buttons:{
+					main:{
+						label:'Aceptar',
+						className:'btn-primary',
+						callback:function(){																								
+							function actualizar(carg_carc){						
+								var data = "id_valor="+val[0]+"&cantidad="+input_cantidad.value								
+								post_parametros(data,'/usuario_admin/actualizar_valor');								
+								carg_carc();											
+							}							
+							actualizar(administrar_caracteristicas);
+						}
+					},
+					danger:{
+						label:'Cancelar',
+						className:'btn-default'
+					}
+				}
+				});									
+		}		
+		function btn_eliminar_valor(){
+			var data="id_valor="+select_valores.value.split(",")[0]
+			post_parametros(data,'/usuario_admin/eliminar_valor')
+			administrar_caracteristicas();	
+			select_valores.remove(select_valores.options.selectedIndex)
+
+		}
+		function btn_agregar_valor(){
+			var nombre_atributo =select_atributos.options.item(select_atributos.options.selectedIndex).innerHTML
+			bootbox.prompt("Nuevo valor para "+nombre_atributo,function(result){
+					if(result!=null){						
+						var data="id_atributo="+select_atributos.value+"&valor="+result							
+						post_parametros(data,'/usuario_admin/insertar_valor');
+					}					
+				});			
+		}
 
 block body
 	div.container
@@ -394,13 +463,13 @@ block body
 							a.list-group-item(onClick="administrar_general();")
 								| General
 							a.list-group-item(onClick="administrar_servicios();")
-								span.badge(id="badge_servicios") 5
+								span.badge(id="badge_servicios")
 								| Servicios
 							a.list-group-item(onClick="administrar_caracteristicas();")
-								span.badge 14
+								span.badge(id="badge_caracteristicas")
 								| Caracteristicas
 							a.list-group-item(onClick="administrar_dimensiones();")
-								span.badge 3
+								span.badge(id="badge_dimensiones")
 								| Dimensiones				
 
 					.col-sm-8
@@ -501,13 +570,21 @@ block body
 										.col-sm-4										
 											.panel.panel-info
 												.panel-heading
-													h5 Valores
+													h5(id="encabezado_valores") Valores
 												.panel-body
 													.list-group
 														select.input-group-lg(id="select_valores"  size="6",style="width:100%")
-													div(align="right")										
-														button.btn.btn-sm.btn-danger(onClick='btn_restar_servicio()') Eliminar
-														br
+													div(align="right")
+														.row
+															.col-sm-4									
+																button.btn.btn-sm.btn-success(onClick='btn_agregar_valor()') Agregar Valor															
+																br
+															.col-sm-3
+																button.btn.btn-sm.btn-warning(onClick='btn_cantidad_valor()') Cantidad
+																br
+															.col-sm-3									
+																button.btn.btn-sm.btn-danger(onClick='btn_eliminar_valor()') Eliminar
+															
 									.row
 										.col-sm-12
 											.row

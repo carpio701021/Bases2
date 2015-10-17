@@ -7,9 +7,10 @@ block scripts
 			document.getElementById(mivar).innerHTML='<div class="alert alert-success" role="alert"><strong>Mensaje de exito: </strong>de esta manera podemos colocar alertas</div>';
 		}
 
-		function llenar(){		
-			document.getElementById("prog").style="width:100%;";
+		function gestionar_usuarios(){		
+			
 		}
+
 block body
 	div.container
 		br
@@ -18,5 +19,65 @@ block body
 		br
 		div(class="jumbotron")
 			h1 Buscatodo modulo Admin Admin 
-			p Una manera de ser feliz		
+			p Una manera de ser feliz
+		.container
+			.row
+				.col-sm-3(style='background-color:#A9BCF5;')
+					h2 Gestionar
+					ul.list-group
+						a.list-group-item(onClick="gestionar_usuarios();")
+							| Usuarios Owner
+						a.list-group-item(onClick="gestionar_bitacora();")
+							span.badge(id="badge_servicios")
+							| Bitacora
+				.col-sm-8
+					div(id="area_usuarios" displaly='block')
+						h1(align='center') Crear Usuario Owner						
+						form(name='FormRegistrar', action='/login/registrar', method='POST', accept-charset='utf-8')
+							table
+								tr
+									td(align='right' style='width:20%')
+										label(for='nombre',style='padding:10px') Nombre:
+									td
+										input.form-control(type='text', name='nombre')
+								tr
+									td(align='right')
+										label(for='Correo',style='padding:10px') Correo:
+									td
+										input.form-control(type='text', name='Correo')
+								tr
+									td(align='right')
+										label(for='NombreUsuario',style='padding:10px') Usuario:
+									td
+										input.form-control(type='text', name='NombreUsuario')
+								tr
+									td(align='right')
+										label(for='Contrasenia',style='padding:10px') Contraseña:
+									td
+										input.form-control(type='password', name='Contrasenia')
+							table
+								tr
+									td(style='width:19%', align='right')
+										label(for='Telefono',style='padding:10px') Telefono:
+									td(style='width:25%')
+										input.form-control(type='text', name='Telefono')
+									td(align='left', style='width:10%')
+										label(for='Telefono',style='padding:10px') Genero:
+									td(align='left',style='width:25%')
+										.form-group(style='padding:5px')
+											select.form-control(name='genero')
+												option(value='0') Femenino
+												option(value='1') Masculino
+									td
+
+								tr
+									td(style='width:10%',align='right')
+										label(for='FechaNacimiento',style='padding:10px') Fecha de nacimiento:
+									td(style='width:12%',align='left')
+										div(class='6u$')
+											.2u(class='2u$(xsmall)')
+												input.form-control(type='date', name='FechaNacimiento')
+							div(style='padding:5px',align='center')
+								input.btn.btn-primary(type='submit', value='Registrarme',style='background-color:#FA5858')
+
 		
