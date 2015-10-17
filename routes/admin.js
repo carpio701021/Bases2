@@ -24,6 +24,7 @@ var valor_insert = function(entrada){
 
 
 router.post('/bitacora',function(req,res) {
+	var dbconnection = require('../routes/dbconnection.js'); 
 	str_query='call selectBitacora();'
 	dbconnection.exe_query(
 		str_query,
