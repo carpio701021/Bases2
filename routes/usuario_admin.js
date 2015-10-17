@@ -282,6 +282,18 @@ router.post('/cargar_caracteristicas',function(req,res,next){
 
 
 
+router.post('/get_calificacion', function(req, res, next) {
+	var dbconnection = require('../routes/dbconnection.js');
+	var str_query = "select outguat.selectCalificacionServicio("+req.body.id_servicio+","+req.user_session.id+");";
+	dbconnection.exe_query(
+		str_query,
+		function(data) {
+			res.send(data)
+		},
+		res);
+});
+
+
 router.post('/cargar_caracteristicas_todas', function(req, res, next) {
 	var dbconnection = require('../routes/dbconnection.js');
 	var str_query = "select * from outguat.atributo;";
