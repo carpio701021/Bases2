@@ -7,8 +7,52 @@ block scripts
 			document.getElementById(mivar).innerHTML='<div class="alert alert-success" role="alert"><strong>Mensaje de exito: </strong>de esta manera podemos colocar alertas</div>';
 		}
 
+		function desaparecer_areas(){
+			area_general.style.display='none'
+			area_servicios.style.display='none'
+			area_caracteristicas.style.display='none'
+			area_dimensiones.style.display='none'
+			area_bienvenida.style.display='none'
+		}
+		function post_parametros(data_to_send,ruta){
+			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
+			var xmlobj = new XMLHttpRequest();														
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
+						var obj=JSON.parse(xmlobj.responseText);
+						alert(xmlobj.responseText)
+						if(ruta=='/usuario_admin/insertar_valor'){
+							administrar_caracteristicas();	
+							var option = document.createElement('option')
+							option.value=valor_insert(obj)
+							option.innerHTML="0 "+ data_to_send.split("=")[2]
+							option.className='list-group-item'
+							select_valores.add(option)												
+						}
+						if(ruta=='/admin/bitacora'){
+							alert(xmlobj.responseText)
+						}
+					}else{
+						alert("Error al cargar caracteristicas");
+					}
+						}
+				}
+			};			
+			xmlobj.open('POST', ruta,true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send(data_to_send);		
+		}
+
 		function gestionar_usuarios(){		
-			
+			post_parametros('','/admin/bitacora');
+		}
+
+		function gestionar_bitacora(){
+
+		}
+		function exportar_bd(){
+
 		}
 
 block body
@@ -27,9 +71,10 @@ block body
 					ul.list-group
 						a.list-group-item(onClick="gestionar_usuarios();")
 							| Usuarios Owner
-						a.list-group-item(onClick="gestionar_bitacora();")
-							span.badge(id="badge_servicios")
+						a.list-group-item(onClick="gestionar_bitacora();")							
 							| Bitacora
+						a.list-group-item(onClick="exportar_bd();")							
+							| Exportar BD
 				.col-sm-8
 					div(id="area_usuarios" displaly='block')
 						h1(align='center') Crear Usuario Owner						
@@ -78,13 +123,21 @@ block body
 											.2u(class='2u$(xsmall)')
 												input.form-control(type='date', name='FechaNacimiento')
 							div(style='padding:5px',align='center')
-								input.btn.btn-primary(type='submit', value='Registrar',style='background-color:#FA5858')
-					.container(align='right')
-						div(style="width:51%",align='center')
-							if error2
-								.alert.alert-danger(role='alert')
-									strong #{error2}
-							if exito2
-								.alert.alert-success(role='alert')
-									strong #{exito2}	
+								input.btn.btn-primary(type='submit', value='Registrar')
+			.row
+				.col-sm-3
+				.col-sm-8
+					div(style="width:51%",align='center')
+						if error2					
+							.alert.alert-danger(role='alert')
+								strong #{error2}
+						if exito2					
+							.alert.alert-success(role='alert')
+								strong #{exito2}
+					
+					div(id="area_bitacora" displaly='block')
+						h1(align='center') Bitacora												
+						div(style='padding:5px',align='center')
+							button.btn.btn-primary(type='button', onClick='gestionar_bitacora()') Actualizar
+
 		
