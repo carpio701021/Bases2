@@ -1,11 +1,14 @@
-select.form-control.select2(id='slbuscador',multiple='multiple',style="width:380px;") !{establecimientos}	
+select.form-control.select2(id='slbuscador',multiple='multiple',style="width:380px;") 
+	option(value='-1') agregar nuevo establecimiento
+	!{establecimientos}	
 script(src='/stylesheets/bootstrap-3.3.5-dist/js/jquery.min.js')
 script(src='/stylesheets/bootstrap-3.3.5-dist/js/select2.js')
 script.
 	$( ".select2" ).select2( { placeholder: "Buscar con palabras clave", maximumSelectionSize: 1 } );
 	$( ".select2" ).on( "select" , function(){
 			//alert("hola: " + slbuscador.value);
-			window.location = "/establecimiento?id="+slbuscador.value;
+			if(slbuscador.value==-1) window.location = "/establecimiento_nuevo";
+			else window.location = "/establecimiento?id="+slbuscador.value;
 			//window.location.assign("http://stackoverflow.com");
 		});
 	$( ":checkbox" ).on( "click", function() {
