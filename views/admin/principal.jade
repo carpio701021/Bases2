@@ -33,7 +33,7 @@ block body
 				.col-sm-8
 					div(id="area_usuarios" displaly='block')
 						h1(align='center') Crear Usuario Owner						
-						form(name='FormRegistrar', action='/login/registrar', method='POST', accept-charset='utf-8')
+						form(name='FormRegistrar', action='/admin/registrar', method='POST', accept-charset='utf-8')
 							table
 								tr
 									td(align='right' style='width:20%')
@@ -78,6 +78,13 @@ block body
 											.2u(class='2u$(xsmall)')
 												input.form-control(type='date', name='FechaNacimiento')
 							div(style='padding:5px',align='center')
-								input.btn.btn-primary(type='submit', value='Registrarme',style='background-color:#FA5858')
-
+								input.btn.btn-primary(type='submit', value='Registrar',style='background-color:#FA5858')
+					.container(align='right')
+						div(style="width:51%",align='center')
+							if error2
+								.alert.alert-danger(role='alert')
+									strong #{error2}
+							if exito2
+								.alert.alert-success(role='alert')
+									strong #{exito2}	
 		
