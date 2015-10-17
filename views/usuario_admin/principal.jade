@@ -72,11 +72,11 @@ block scripts
 							badge_servicios.innerHTML=my_services.length
 							actualizar_total_porcentaje();
 						}
-						if(area=='caracteristicas'){			
+						if(area=='caracteristicas'){										
 							var atributos=obj.atributos_tipos[0];
 							var valores=obj.atributos_valores[0];	
-							limpiar_select(select_atributos)										
-							for(var i in atributos){
+							limpiar_select(select_atributos)								
+							for(var i in atributos){								
 								if(parseInt(atributos[i]['id'])>5 && atributos[i]['dimension']==0){
 									console.log(i)
 									console.log(atributos[i].nombre)
@@ -107,7 +107,7 @@ block scripts
 			xmlobj.send();	
 		}
 
-		function limpiar_select(select){
+		function limpiar_select(select){			
 			for(var o in select){
 				select.options.remove(o);
 			}
@@ -516,7 +516,7 @@ block body
 														div(align='right', style='padding:5px')
 															input.btn.btn-primary(type='submit', value='Guardar', style='width:100%')
 							div(id="area_servicios" name="area_servicios" style='display:none')
-								.container																		
+								.container
 									.row
 										.col-sm-8
 											h2
@@ -564,7 +564,7 @@ block body
 														strong Mis Caracteristicas
 												.panel-body
 													.list-group
-														select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')
+														select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')															
 													div(align="right")
 														button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia()') Agregar
 										.col-sm-4										
@@ -593,29 +593,27 @@ block body
 											.panel.panel-info
 												.panel-heading
 													h5
-														strong Mis Caracteristicas
+														strong Mis dimensiones
 												.panel-body
 													.list-group
-														select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')
+														select.input-group-lg(id="select_dimensiones" size="6",style="width:100%",onChange='seleccionar_caracteristica()')
 													div(align="right")
-														button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia()') Agregar
+														.row
+															.col-sm-4
+																button.btn.btn-sm.btn-success(onclick='btn_agregar_dimension_mia()') Agregar
+															.col-sm-3									
+																button.btn.btn-sm.btn-danger(onClick='btn_eliminar_dim()') Eliminar
 										.col-sm-4										
 											.panel.panel-info
 												.panel-heading
-													h5(id="encabezado_valores") Valores
+													h5(id="encabezado_valor_dimension") Valores
 												.panel-body
-													.list-group
-														select.input-group-lg(id="select_valores"  size="6",style="width:100%")
+													h3 valor														
 													div(align="right")
 														.row
 															.col-sm-4									
-																button.btn.btn-sm.btn-success(onClick='btn_agregar_valor()') Agregar Valor															
-																br
-															.col-sm-3
-																button.btn.btn-sm.btn-warning(onClick='btn_cantidad_valor()') Cantidad
-																br
-															.col-sm-3									
-																button.btn.btn-sm.btn-danger(onClick='btn_eliminar_valor()') Eliminar
+																button.btn.btn-sm.btn-success(onClick='btn_agregar_valor()') Agregar Valor																													
+																br															
 																						
 																				
 							div(id="area_bienvenida" name="area_bienvenida")
@@ -652,9 +650,9 @@ block body
 										label(for='descripsion',style='padding:5px') Descripción:
 									.col-sm-7
 										div(style='padding:2px')
-											textarea.form-control(name='descripsion')								
+											textarea.form-control(name='descripsion')
 								.row
-									.col-sm-3(align="right")																	
+									.col-sm-3(align="right")
 										label(for='longitud',style='padding:5px') Longitud:
 									.col-sm-2
 										input.form-control(type='number',step='any', name='longitud',style="width:115px")
