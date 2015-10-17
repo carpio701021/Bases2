@@ -35,11 +35,11 @@ router.post('/registrar',function(req,res) {
 	console.log("nom "+nombre+" mail: "+correo+" usern:"+username+" pas:"+pass+" tel:"+tel+" fecha:"+FechaNacimiento+" gen:"+genero);
 	function registrar_usuario(exito){		
 		if(valor_insert(exito)!='0'){
-			res.render('login', { 				
+			res.render('/admin', { 				
 				exito2: 'Usuario registrado con exito'
 			});
 		}else{
-			res.render('login', { 				
+			res.render('/admin', { 				
 				error2: 'Ocurrió un problema para registrar usuario'				
 			});
 		}
