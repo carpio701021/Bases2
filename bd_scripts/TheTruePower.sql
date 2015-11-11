@@ -94,12 +94,13 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS insertReserva;
 DELIMITER $$
-CREATE FUNCTION insertReserva(
+CREATE DEFINER=`root`@`localhost` FUNCTION `insertReserva`(
     _idUsuario INT,
     _idValor INT,
     _fechaInicio DATETIME,
-    _fechaFin DATETIME
-  ) RETURNS INT
+    _fechaFin DATETIME,
+    _cantidad INT
+  ) RETURNS int(11)
 BEGIN
   DECLARE a INT;
   INSERT INTO Reserva (idUsuario, idValor, fechaInicio, fechaFin) VALUES (_idUsuario, _idValor, _fechaInicio, _fechaFin);
@@ -107,11 +108,11 @@ BEGIN
   IF a=0 THEN
   RETURN 0;
   ELSE
-  UPDATE Valor SET cantidad = a-1 WHERE id=_idValor;
+  UPDATE Valor SET cantidad = a-_cantidad WHERE id=_idValor;
   INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una reserva con id ',last_insert_id()));
   RETURN 1;
   END IF;
-END $$
+END  $$
 DELIMITER ;
 
 
@@ -478,8 +479,8 @@ CREATE Procedure selectAtributo(
     _id INT
   )
 BEGIN
-select A.nombre, V.valor,V.cantidad
-from Valor V, Atributo A
+select V.id AS idValor, A.id, A.nombre, V.valor,V.cantidad
+from  Valor V, Atributo A
 where V.idAtributo = A.id AND V.idEstablecimiento=_id AND A.dimension=0;
 
 END $$
