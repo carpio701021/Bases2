@@ -33,8 +33,15 @@ CREATE FUNCTION insertCalificacion(
     _punteo INT
   ) RETURNS INT
 BEGIN
-  INSERT INTO Calificacion (idEstablecimiento, idServicio, idUsuario,punteo) VALUES (_idEstablecimiento, _idServicio, _idUsuario, _punteo);
-  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una calificacion con id ',last_insert_id()));
+  DECLARE i INT;
+  select count(*) from Calificacion where idEstablecimiento=_idEstablecimiento AND idServicio=_idServicio AND idUsuario=_idUsuario into i;
+  IF i=1 THEN
+	UPDATE Calificacion SET punteo = _punteo WHERE idEstablecimiento=_idEstablecimiento AND idUsuario=_idUsuario AND idServicio=_idServicio;
+    INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se modifico la calificacion con id ',last_insert_id()));
+  ELSE
+	INSERT INTO Calificacion (idEstablecimiento, idServicio, idUsuario,punteo) VALUES (_idEstablecimiento, _idServicio, _idUsuario, _punteo);
+	INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una calificacion con id ',last_insert_id()));
+  END IF;
   RETURN last_insert_id();
 END $$
 DELIMITER ;
@@ -85,7 +92,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 DROP FUNCTION IF EXISTS insertReserva;
 DELIMITER $$
 CREATE FUNCTION insertReserva(
@@ -95,11 +101,19 @@ CREATE FUNCTION insertReserva(
     _fechaFin DATETIME
   ) RETURNS INT
 BEGIN
+  DECLARE a INT;
   INSERT INTO Reserva (idUsuario, idValor, fechaInicio, fechaFin) VALUES (_idUsuario, _idValor, _fechaInicio, _fechaFin);
+  select cantidad from Valor Where id=_idValor into a;
+  IF a=0 THEN
+  RETURN 0;
+  ELSE
+  UPDATE Valor SET cantidad = a-1 WHERE id=_idValor;
   INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una reserva con id ',last_insert_id()));
-  RETURN last_insert_id();
+  RETURN 1;
+  END IF;
 END $$
 DELIMITER ;
+
 
 DROP FUNCTION IF EXISTS insertServicio;
 DELIMITER $$
@@ -225,6 +239,17 @@ RETURN 1;
 END $$
 DELIMITER ;
 
+DROP FUNCTION IF EXISTS deleteReserva;
+DELIMITER $$
+CREATE FUNCTION deleteReserva(
+    _id INT
+  ) RETURNS INT
+BEGIN
+      DELETE FROM Reserva WHERE id=_id;
+RETURN 1;
+END $$
+DELIMITER ;
+
 
 DROP FUNCTION IF EXISTS deleteEstablecimiento;
 DELIMITER $$
@@ -251,12 +276,11 @@ DELIMITER ;
 
 DROP FUNCTION IF EXISTS deleteValor;
 DELIMITER $$
-CREATE FUNCTION deleteValor(_idEstablecimiento INT, _idAtributo INT)
+CREATE FUNCTION deleteValor(_id INT)
 RETURNS INT
 BEGIN
-DECLARE a INT DEFAULT 0;
-select V.id from Valor V where V.idEstablecimiento=_idEstablecimiento AND V.idAtributo=_idAtributo INTO a;
-DELETE FROM Valor WHERE id=a;
+DELETE FROM Valor WHERE id=_id;
+
 RETURN 1;
 END $$
 DELIMITER ;
@@ -274,6 +298,31 @@ DELIMITER ;
 -- UPDATE
 
 -- usuario
+
+DROP PROCEDURE IF EXISTS updateValor;
+DELIMITER $$
+CREATE Procedure updateValor(
+    _id INT,
+    _cantidad INT
+)
+BEGIN
+UPDATE Valor SET cantidad = _cantidad WHERE id=_id;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS updateCalificacion;
+DELIMITER $$
+CREATE Procedure updateCalificacion(
+    _idEstablecimiento INT,
+    _idUsuario INT,
+    _idServicio INT,
+    _punteo INT
+)
+BEGIN
+UPDATE Calificacion SET punteo = _punteo WHERE idEstablecimiento=_idEstablecimiento AND idUsuario=_idUsuario AND idServicio=_idServicio;
+END $$
+DELIMITER ;
+
 
 DROP PROCEDURE IF EXISTS updateEstablecimientoServicio;
 DELIMITER $$
@@ -308,11 +357,9 @@ UPDATE Establecimiento SET idTipoEstablecimiento = _idTipoEstablecimiento WHERE 
 END $$
 DELIMITER ;
 -- OTROS
-
 DROP FUNCTION IF EXISTS Calificar;
 DELIMITER $$
 CREATE FUNCTION Calificar(
-  _idUsuario INT,
   _idEstablecimiento INT
 )
 RETURNS DOUBLE
@@ -324,13 +371,15 @@ DECLARE o INT;
 DECLARE u INT;
 DECLARE e INT;
 DECLARE p INT;
-SELECT count(*) FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento into i;
+DECLARE mm DOUBLE default 0.00;
+SELECT count(*) FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento into n;
 WHILE i<n DO
-  SELECT _idEstablecimiento FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento limit i,1 INTO o;
-  SELECT _idServicio FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento limit i,1 INTO e;
-  SELECT AVG(punteo) FROM Calificacion WHERE idEstablecimiento=o AND idServicio=e INTO u;
-  SELECT porcentaje FROM EstablecimientoServicio WHERE idEstablecimiento=o AND idServicio=e  INTO p;
+  SELECT ES.idServicio FROM EstablecimientoServicio ES WHERE  idEstablecimiento=_idEstablecimiento limit i,1 INTO e;
+  SELECT AVG(punteo) FROM Calificacion WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e limit i,1 INTO u;
+  SELECT porcentaje FROM EstablecimientoServicio WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e INTO p;
   SET nota= nota+(u*(p/100));
+  SET i=i+1;
+
 END WHILE;
 RETURN nota;
 END $$
@@ -460,7 +509,8 @@ S.id=ES.idServicio
 and ES.idEstablecimiento=_id
 LEFT JOIN Calificacion C
 ON C.idUsuario=_idUsr
-and C.idServicio=S.id;
+and C.idServicio=S.id
+and C.idEstablecimiento=_id;
 END $$
 DELIMITER ;
 
@@ -496,6 +546,31 @@ and V.idEstablecimiento=ES.idEstablecimiento;
 END $$
 DELIMITER ;
 
+DROP Procedure IF EXISTS selectAtributosOwnerSinRepetir;
+DELIMITER $$
+CREATE Procedure selectAtributosOwnerSinRepetir(
+    _id INT
+  )
+BEGIN
+DECLARE p INT;
+select V.idEstablecimiento as valor from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id into p;
+select A.id, A.nombre, A.dimension
+from Valor V, Atributo A, Establecimiento E
+where V.idAtributo = A.id AND E.id=p AND V.idEstablecimiento=p
+group by A.nombre;
+END $$
+DELIMITER ;
+
+DROP Procedure IF EXISTS selectAtributosTodos;
+DELIMITER $$
+CREATE Procedure selectAtributosTodos()
+BEGIN
+DECLARE p INT;
+select A.id, A.nombre, A.dimension
+from Atributo A;
+END $$
+DELIMITER ;
+
 
 DROP Procedure IF EXISTS selectAtributosOwner;
 DELIMITER $$
@@ -505,12 +580,11 @@ CREATE Procedure selectAtributosOwner(
 BEGIN
 DECLARE p INT;
 select V.idEstablecimiento as valor from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id into p;
-select TE.id, A.nombre, V.valor,V.cantidad
-from Valor V, Atributo A, TipoEstablecimiento TE
-where V.idAtributo = A.id AND TE.id=p AND V.idEstablecimiento=p;
+select E.id AS idEstablecimiento,V.id AS idValor,E.idTipoEstablecimiento, A.nombre, V.valor,V.cantidad, A.dimension
+from Valor V, Atributo A, Establecimiento E
+where V.idAtributo = A.id AND E.id=p AND V.idEstablecimiento=p;
 END $$
 DELIMITER ;
-
 
 
 DROP Procedure IF EXISTS logUsuario;
@@ -533,6 +607,14 @@ DROP Procedure IF EXISTS Taran;
 DELIMITER $$
 CREATE Procedure Taran()
 BEGIN
+select 'TipoEstablecimiento_id','TipoEstablecimiento_nombre','Establecimiento_id','Establecimiento_idTipoEstablecimiento',
+'Servicio_id','Servicio_nombre','EstablecimientoServicio_idServicio','EstablecimientoServicio_idEstablecimiento',
+'EstablecimientoServicio_porcentaje','TipoUsuario_id','TipoUsuario_nombre','Usuario_id','Usuario_idTipoUsuario','Usuario_usuario',
+'Usuario_nombre','Usuario_fechaNacimiento','Usuario_telefono','Usuario_correo','Usuario_genero','Usuario_password',
+'Calificacion_idEstablecimiento','Calificacion_idServicio','Calificacion_idUsuario','Calificacion_punteo','Calificacion_fecha',
+'Atributo_id','Atributo_nombre','Atributo_dimension','Valor_id','Valor_cantidad','Valor_valor','Valor_idEstablecimiento',
+'Valor_idAtributo','Comentario_id','Comentario_comentario','Comentario_fecha','Comentario_idUsuario','Comentario_idEstablecimiento'
+UNION
 select distinct TE.id AS TipoEstablecimiento_id, TE.nombre AS TipoEstablecimiento_nombre, E.id AS Establecimiento_id, E.idTipoEstablecimiento AS Establecimiento_idTipoEstablecimiento, SUB2.*, SUB3.*,SUB5.*, SUB6.* from TipoEstablecimiento TE
 LEFT JOIN Establecimiento E ON TE.id=E.idTipoEstablecimiento
 LEFT JOIN (select S.id AS Servicio_id, S.nombre AS Servicio_nombre, ES.idServicio AS EstablecimientoServicio_idServicio, ES.idEstablecimiento AS EstablecimientoServicio_idEstablecimiento, ES.porcentaje AS EstablecimientoServicio_porcentaje from Servicio S
@@ -544,9 +626,12 @@ LEFT JOIN(select A.id AS Atributo_id, A.nombre AS Atributo_nombre, A.dimension A
 LEFT JOIN Valor V ON A.id=V.idAtributo
 LEFT JOIN (Select R.id AS Reserva_id, R.fechaInicio AS Reserva_fechaInicio, R.fechaFin AS Reserva_fechaFin, R.idValor AS Reserva_idValor, R.idUsuario AS Reserva_idUsuario from Reserva R) SUB4 ON V.id=SUB4.Reserva_idValor)SUB5 ON E.id=SUB5.Valor_idEstablecimiento
 LEFT JOIN (select C.id AS Comentario_id, C.comentario AS Comentario_comentario, C.fecha AS Comentario_fecha, C.idUsuario AS Comentario_idUsuario, C.idEstablecimiento AS Comentario_idEstablecimiento
-from Comentario C)SUB6 ON E.id= SUB6.Comentario_idEstablecimiento into OUTFILE    '/tmp/Salida.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';
+from Comentario C)SUB6 ON E.id= SUB6.Comentario_idEstablecimiento
+
+ into OUTFILE    '/tmp/Salida.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';
 END $$
 DELIMITER ;
+
 
 
 
@@ -591,6 +676,15 @@ select insertUsuario(2,'Owner18','Owner','1994/12/21','12312','owner18@owner.com
 select insertUsuario(2,'Owner19','Owner','1994/12/21','12312','owner19@owner.com',1,'pokemon');
 select insertUsuario(2,'Owner20','Owner','1994/12/21','12312','owner20@owner.com',1,'pokemon');
 select insertUsuario(2,'Owner21','Owner','1994/12/21','12312','owner21@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner22','Owner','1994/12/21','12312','owner22@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner23','Owner','1994/12/21','12312','owner23@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner24','Owner','1994/12/21','12312','owner24@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner25','Owner','1994/12/21','12312','owner25@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner26','Owner','1994/12/21','12312','owner26@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner27','Owner','1994/12/21','12312','owner27@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner28','Owner','1994/12/21','12312','owner28@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner29','Owner','1994/12/21','12312','owner29@owner.com',1,'pokemon');
+select insertUsuario(2,'Owner30','Owner','1994/12/21','12312','owner30@owner.com',1,'pokemon');
 
 select insertTipoEstablecimiento('Iglesia'); -- 4
 select insertTipoEstablecimiento('Funeraria'); -- 5
@@ -603,8 +697,9 @@ select insertTipoEstablecimiento('Supermercado'); -- 11
 select insertTipoEstablecimiento('Pasteleria'); -- 12
 select insertTipoEstablecimiento('Bar'); -- 13
 select insertTipoEstablecimiento('Transporte'); -- 14
+select insertTipoEstablecimiento('Musica'); -- 15
 
--- HASTA AQUI AGUANTA CASACA
+
 select insertAtributo('Mesas',0); -- 6
 select insertAtributo('Habitaciones',0); -- 7
 select insertAtributo('Piscinas',0); -- 8
@@ -624,6 +719,7 @@ select insertAtributo('Clinicas',0); -- 21
 select insertAtributo('Carretas',0); -- 22
 select insertAtributo('Pasteles',0); -- 23
 select insertAtributo('Viajes',0); -- 24
+
 
 select insertAtributo('Color',1); -- 25
 select insertAtributo('Tamaño',1); -- 26
@@ -651,10 +747,17 @@ select insertEstablecimiento(11,'Supertienda Paiz','-90.4960388','14.6262604',18
 select insertEstablecimiento(12,'Anfora','-90.4949799','14.6265522',19,'Yo quiero Cheese Cake :D');
 select insertEstablecimiento(13,'El Borrachin','-90.4976585','14.631449',20,'Valimos pitoooo');
 select insertEstablecimiento(14,'Litegua','-90.510164','14.632767',21,'Viajes gratisss :D');
-select insertEstablecimiento(14,'Linea Dorada','-90.5095214','14.632363',22,'Vamos penten :D');
+select insertEstablecimiento(14,'Linea Dorada','-90.5095214','14.632363',22,'Vamos a penten :D');
+select insertEstablecimiento(10,'Parque de la Industria','-90.5229776','14.6084384',23,'Aqui se hace la INTERFER');
+select insertEstablecimiento(15,'Do Mi Sol Bolivar','-90.5304734','14.616809',24,'do re mi fa sol la si');
+select insertEstablecimiento(2,'McDonald´s Bolivar','-90.5296823','14.6186301',25,'Otro mc');
+select insertEstablecimiento(6,'Colegio Don Bosco','-90.52248','14.6244634',26,'Colegio Salesiano');
+select insertEstablecimiento(11,'Plaza el Amate','-90.517689','14.6301484',27,'No llevar mas de Q100 que de seguro te los roban');
+select insertEstablecimiento(9,'Hospital Los Angeles','-90.5207678','14.6344463',28,'guiiiiu guiiiiu guiiiiu (ambulancia)');
+select insertEstablecimiento(9,'Hospital San Juan de Dios','-90.5223389','14.6396636',29,'Con mas de 80% de defunciones');
+select insertEstablecimiento(15,'Conservatorio Nacional de Musica German Alcantara','-90.5187091','14.6435707',30,'Do8 re8 mi8');
+select insertEstablecimiento(2,'Arrin Cuan','-90.5145114','14.6450828',31,'Comida y marimba en vivo todos los dias');
 
-
--- HASTA AQUI AGUANTA CASACA
 select insertValor(1,10,2,'Carro Pequeño');
 select insertValor(2,11,1,'Atrio Mediano');
 select insertValor(3,6,10,'Para 2 personas');
@@ -705,7 +808,6 @@ select insertValor(16,19,3,'Bien cuidadas');
 select insertValor(16,19,1,'Arruinada');
 select insertValor(16,18,1,'Campo fut 11');
 select insertValor(16,18,20,'Campo papi fut');
--- HASTA AQUI AGUANTA CASACA
 select insertValor(17,22,50,'Buen estado');
 select insertValor(17,22,10,'Mal estado');
 select insertValor(18,6,4,'Para 5 personas');
@@ -716,6 +818,41 @@ select insertValor(20,24,4,'Para Xela');
 select insertValor(20,24,14,'Para Peten');
 select insertValor(21,24,3,'Para Rehu');
 select insertValor(21,24,1,'Para Izabal');
+select insertValor(22,13,3,'Para niños');
+select insertValor(22,8,1,'Piscina Mediana');
+select insertValor(22,9,5,'Para 50 personas');
+select insertValor(22,9,3,'Para 200 personas');
+select insertValor(22,9,7,'Para 500 personas');
+select insertValor(23,16,5,'Con profesionales');
+select insertValor(24,13,1,'Para niños');
+select insertValor(24,9,1,'MCSalon');
+select insertValor(25,14,40,'Primero primaria');
+select insertValor(25,14,40,'Segundo primaria');
+select insertValor(25,14,40,'Tercero primaria');
+select insertValor(25,14,40,'Cuarto primaria');
+select insertValor(25,14,40,'Quinto primaria');
+select insertValor(25,14,40,'Sexto primaria');
+select insertValor(25,15,2,'Cancha de Basquet');
+select insertValor(26,9,100,'Pequeños');
+select insertValor(27,16,10,'Doctores');
+select insertValor(27,16,2,'Cirujanos');
+select insertValor(27,16,5,'Oftalmologos');
+select insertValor(27,7,15,'Chileras');
+select insertValor(27,16,1,'Doctores');
+select insertValor(27,7,1,'Descompuesta');
+select insertValor(29,14,10,'Bateria 1');
+select insertValor(29,14,10,'Bateria 2');
+select insertValor(29,14,10,'Bateria 3');
+select insertValor(29,14,15,'Bajo 1');
+select insertValor(29,14,15,'Bajo 2');
+select insertValor(29,14,25,'Guitarra 1');
+select insertValor(29,14,25,'Guitarra 2');
+select insertValor(29,14,25,'Guitarra 3');
+select insertValor(30,6,10,'Para 5 personas');
+select insertValor(30,6,5,'Para 15 personas');
+select insertValor(30,9,1,'Para todo evento');
+
+
 
 select insertValor(2,26,0,'Pequeña');
 select insertValor(3,25,0,'Amarillo');
@@ -726,8 +863,6 @@ select insertValor(9,26,0,'Grande');
 select insertValor(9,27,0,'Cool');
 select insertValor(19,28,0,'Obscuro');
 select insertValor(19,27,0,'Dark');
-
--- HASTA AQUI AGUANTA CASACA
 
 select insertServicio('Hospedaje'); -- 1
 select insertServicio('Comida'); -- 2
@@ -750,9 +885,12 @@ select insertServicio('Musicon'); -- 18
 select insertServicio('Transporte'); -- 19
 select insertServicio('Velorio'); -- 20
 select insertServicio('Balanceo'); -- 21
-select insertServicio('Recreacion'); -- 21
+select insertServicio('Recreacion'); -- 22
+select insertServicio('Profesionalismo'); -- 24
+select insertServicio('Calidad'); -- 25
+select insertServicio('Seguridad'); -- 26
 
--- HASTA ACA AGUANTA CASACA
+
 
 select insertEstablecimientoServicio(11,1,20);
 select insertEstablecimientoServicio(12,1,80);
@@ -794,5 +932,26 @@ select insertEstablecimientoServicio(18,17,10);
 select insertEstablecimientoServicio(2,18,100);
 select insertEstablecimientoServicio(2,19,10);
 select insertEstablecimientoServicio(18,19,90);
-select insertEstablecimientoServicio(21,20,100);
-select insertEstablecimientoServicio(21,21,100);
+select insertEstablecimientoServicio(19,20,100);
+select insertEstablecimientoServicio(19,21,100);
+select insertEstablecimientoServicio(22,22,90);
+select insertEstablecimientoServicio(18,22,10);
+select insertEstablecimientoServicio(24,23,50);
+select insertEstablecimientoServicio(25,23,50);
+select insertEstablecimientoServicio(2,24,100);
+select insertEstablecimientoServicio(8,25,95);
+select insertEstablecimientoServicio(22,25,5);
+select insertEstablecimientoServicio(26,26,90);
+select insertEstablecimientoServicio(22,26,10);
+select insertEstablecimientoServicio(24,27,20);
+select insertEstablecimientoServicio(25,27,20);
+select insertEstablecimientoServicio(26,27,10);
+select insertEstablecimientoServicio(17,27,50);
+select insertEstablecimientoServicio(24,28,20);
+select insertEstablecimientoServicio(25,28,20);
+select insertEstablecimientoServicio(26,28,10);
+select insertEstablecimientoServicio(17,28,50);
+select insertEstablecimientoServicio(24,29,40);
+select insertEstablecimientoServicio(8,29,60);
+select insertEstablecimientoServicio(25,30,50);
+select insertEstablecimientoServicio(2,30,50);
