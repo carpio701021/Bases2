@@ -27,10 +27,20 @@ router.get('/', function(req, res, next) {
 router.get('/gestionDeDatos', function(req, res, next) {
 
 	if (!(req.user_session && req.user_session.id)) {//componer
-		 res.redirect('/login?error=debe iniciar sesion primero');
+		res.redirect('/login?error=debe iniciar sesion primero');
 	}
 
-  res.render('admin/gestionDeDatos', { mivar: 'nombre' });
+	res.render('admin/gestionDeDatos', { mivar: 'nombre' });
+});
+
+
+router.get('/reportes', function(req, res, next) {
+
+	if (!(req.user_session && req.user_session.id)) {//componer
+		res.redirect('/login?error=debe iniciar sesion primero');
+	}
+
+	res.render('admin/reportes', { mivar: 'nombre' });
 });
 
 
