@@ -1,0 +1,60 @@
+extends BaseAdmin
+
+block scripts
+	script.
+		
+
+block body
+	div.container
+		br
+		br
+		br
+		br
+		h1 Reportes
+		.container
+			.row
+				.col-sm-3(style='background-color:#A9BCF5;')
+					h3 Opciones
+					ul.list-group
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse1')
+							| 1. Owners y Establecimientos
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse2')
+							| 2. Puntuaciones
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse3')
+							| 3. Busquedas
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse4')
+							| 4. Bitácora de transacciones
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse5')
+							| 5. Usuarios
+				.col-sm-8
+					#accordionx.panel-group
+						.panel.panel-default
+							#collapse1.panel-collapse.collapse.in
+								h2 Reporte de Owners y Establecimientos
+								|1. Reporte de Clientes (power users) y establecimientos asignados, filtro: Cliente o establecimiento. También debe mostrar los totales de los establecimientos, cuantos hay por cada categoría, servicio o tipo de establecimiento. Ahora debe ser posible asignar varios establecimientos a un cliente.	
+
+							#collapse2.panel-collapse.collapse
+								h2 Puntuaciones
+								|2. Reporte de puntuación general, por servicio y por tipo de Establecimiento, filtros: Tipo de establecimiento, categorías y servicios. Hacer un Top 10 y listado completo.
+							#collapse3.panel-collapse.collapse
+								h2 Busquedas
+								|3. Reporte de Búsqueda de establecimientos por los siguientes filtros: nombre, tipo de establecimiento, número de esferas, servicios, dirección, cercanía, evaluaciones (comentarios).
+							#collapse4.panel-collapse.collapse
+								h2 Bitácora de transacciones
+								|4. Reporte de Bitácora de transacciones (Registros de auditoria): Filtros: por fecha, acción, establecimiento, usuario. 
+							#collapse5.panel-collapse.collapse
+								h2 Usuarios
+								|5. Reporte de usuarios. Datos de los usuarios.
+
+
+
+		.container(align='right')
+			div(style="width:51%",align='center')
+				if error2
+					.alert.alert-danger(role='alert')
+						strong #{error2}
+				if exito2
+					.alert.alert-success(role='alert')
+						strong #{exito2}	
+
+

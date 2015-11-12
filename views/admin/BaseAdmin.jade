@@ -8,7 +8,7 @@ html
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2.css')
 		block scripts
 	
-	body		
+	body
 		nav.navbar.navbar-inverse.navbar-fixed-top
 			.container
 				.navbar-header
@@ -17,7 +17,7 @@ html
 						span.icon-bar
 						span.icon-bar
 						span.icon-bar
-					a.navbar-brand(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscatodo
+					a.navbar-brand(href='/login',style="padding:22px;") Buscatodo
 				#navbar.navbar-collapse.collapse
 					ul.nav.navbar-nav
 						li
@@ -25,7 +25,11 @@ html
 								.select2-wrapper
 									include ../buscador.jade
 						li
-							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar						
+							a(href='#',style="padding:22px;") Buscar						
+						li
+							a(href='/admin/gestionDeDatos',style="padding:22px;") Gestion de datos					
+						li
+							a(href='/admin/reportes',style="padding:22px;") Repores						
 						li.dropdown
 							a.dropdown-toggle(href='http://getbootstrap.com/examples/theme/#', data-toggle='dropdown', role='button', aria-haspopup='true', aria-expanded='false',style="padding:22px;") 
 								|Cuenta 

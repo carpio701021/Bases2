@@ -215,7 +215,7 @@ router.post('/establecimiento/reservar', function(req, res, next) {
 
 	function insertarCalificacion(resultado) {
 		console.log('Resultado reservacion: ' + resultado);
-		res.redirect('/establecimiento?id='+idEstablecimiento+'&resultado_reserva='+resultado[0]);
+		res.redirect('/establecimiento?id='+idEstablecimiento+'&resultado_reserva=exito');
 	}
 
 	//llamada al objeto base de datos

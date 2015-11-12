@@ -1,3 +1,16 @@
+var multer = require('multer');
+var storage = multer.diskStorage({
+	destination: function(req, file, cb) {
+		cb(null, '../uploads_from_server/')
+	},
+	filename: function(req, file, cb) {
+		cb(null, "[" + file.fieldname + '-' + Date.now() + "]" + file.originalname)
+	}
+});
+var upload = multer({
+	storage: storage
+});
+
 var express = require('express');
 var router = express.Router();
 
@@ -9,6 +22,35 @@ router.get('/', function(req, res, next) {
 	}
 
   res.render('admin/principal', { mivar: 'nombre',otra: '<button>caca </button>' });
+});
+
+router.get('/gestionDeDatos', function(req, res, next) {
+
+	if (!(req.user_session && req.user_session.id)) {//componer
+		res.redirect('/login?error=debe iniciar sesion primero');
+	}
+
+	res.render('admin/gestionDeDatos', { mivar: 'nombre' });
+});
+
+
+router.get('/reportes', function(req, res, next) {
+
+	if (!(req.user_session && req.user_session.id)) {//componer
+		res.redirect('/login?error=debe iniciar sesion primero');
+	}
+
+	res.render('admin/reportes', { mivar: 'nombre' });
+});
+
+
+router.post('/importarBD', upload.single('archToImport'), function(req, res, next) {
+	// req.file is the `avatar` file
+	// req.body will hold the text fields, if there were any
+	console.log('req: ' + JSON.stringify(req.file));
+
+
+	res.send(req.file.path);
 });
 
 
