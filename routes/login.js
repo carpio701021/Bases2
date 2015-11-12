@@ -34,7 +34,7 @@ router.post('/', function(req, res) {
 				res.redirect('/admin')
 			}else{
 				if(tipo_usuario==2){ //usuario owner
-					res.redirect('/usuario_admin');
+					res.redirect('/usuario_admin/seleccionar');
 				}
 				else{ //usuario final
 					res.redirect('/');	

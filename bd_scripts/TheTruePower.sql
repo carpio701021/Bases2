@@ -100,19 +100,31 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `insertReserva`(
     _fechaInicio DATETIME,
     _fechaFin DATETIME,
     _cantidad INT
+<<<<<<< HEAD
+  ) RETURNS INT
+=======
   ) RETURNS int(11)
+>>>>>>> refs/remotes/origin/master
 BEGIN
   DECLARE a INT;
   INSERT INTO Reserva (idUsuario, idValor, fechaInicio, fechaFin) VALUES (_idUsuario, _idValor, _fechaInicio, _fechaFin);
   select cantidad from Valor Where id=_idValor into a;
+<<<<<<< HEAD
+  IF a<_cantidad THEN
+=======
   IF a=0 THEN
+>>>>>>> refs/remotes/origin/master
   RETURN 0;
   ELSE
   UPDATE Valor SET cantidad = a-_cantidad WHERE id=_idValor;
   INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una reserva con id ',last_insert_id()));
   RETURN 1;
   END IF;
+<<<<<<< HEAD
+END $$
+=======
 END  $$
+>>>>>>> refs/remotes/origin/master
 DELIMITER ;
 
 
@@ -463,6 +475,17 @@ select E.id, E.idTipoEstablecimiento, V.valor from Establecimiento E, Valor V wh
 END $$
 DELIMITER ;
 
+
+DROP Procedure IF EXISTS selectBitacora;
+DELIMITER $$
+CREATE Procedure selectBitacora(
+)
+BEGIN
+select * from Bitacora;
+END $$
+DELIMITER ;
+
+
 DROP Procedure IF EXISTS selectComentario;
 DELIMITER $$
 CREATE Procedure selectComentario(
@@ -485,7 +508,6 @@ where V.idAtributo = A.id AND V.idEstablecimiento=_id AND A.dimension=0;
 
 END $$
 DELIMITER ;
-
 
 DROP Procedure IF EXISTS selectServicioTodos;
 DELIMITER $$
@@ -581,7 +603,11 @@ CREATE Procedure selectAtributosOwner(
 BEGIN
 DECLARE p INT;
 select V.idEstablecimiento as valor from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id into p;
+<<<<<<< HEAD
+select A.id, E.id AS idEstablecimiento,V.id AS idValor,E.idTipoEstablecimiento, A.nombre, V.valor,V.cantidad, A.dimension
+=======
 select E.id AS idEstablecimiento,V.id AS idValor,E.idTipoEstablecimiento, A.nombre, V.valor,V.cantidad, A.dimension
+>>>>>>> refs/remotes/origin/master
 from Valor V, Atributo A, Establecimiento E
 where V.idAtributo = A.id AND E.id=p AND V.idEstablecimiento=p;
 END $$

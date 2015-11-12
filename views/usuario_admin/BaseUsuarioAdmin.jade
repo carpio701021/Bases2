@@ -8,7 +8,7 @@ html
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2-bootstrap.css')
 		link(rel='stylesheet', href='/stylesheets/bootstrap-3.3.5-dist/css/select2.css')
 		//link(rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css")
-		link(rel="stylesheet" href="/stylesheets/bootstrap-3.3.5-dist/css/star-rating.css" media="all" type="text/css")
+		link(rel="stylesheet" href="/stylesheets/bootstrap-3.3.5-dist/css/star-rating.css" media="all" type="text/css")			
 
 		block scripts
 	
@@ -29,7 +29,9 @@ html
 								.select2-wrapper
 									include ../buscador.jade
 						li
-							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar						
+							a(href='http://getbootstrap.com/examples/theme/#',style="padding:22px;") Buscar
+						li
+							a(href='/usuario_admin/seleccionar',style="padding:22px;") Mis establecimientos
 						li.dropdown
 							a.dropdown-toggle(href='http://getbootstrap.com/examples/theme/#', data-toggle='dropdown', role='button', aria-haspopup='true', aria-expanded='false',style="padding:22px;") 
 								|#{username} 

@@ -111,17 +111,6 @@ block scripts
 							}
 							badge_dimensiones.innerHTML=select_dimensiones.options.length							
 						}
-						if(area=='merge'){
-							alert(obj);
-							limpiar_select(select_sitios)										
-							for(var i =0 ;i< obj[0].length;i++){
-								var option = document.createElement('option');
-								option.value=obj[0][i]['id']
-								option.innerHTML=obj[0][i]['nombre'];
-								option.className='list-group-item';
-								select_sitios.add(option)
-							}
-						}
 					}else{
 						alert("Imposible cargar datos");
 					}
@@ -145,7 +134,6 @@ block scripts
 			area_dimensiones.style.display='none'
 			area_bienvenida.style.display='none'
 			area_consultar.style.display='none'
-			area_merge.style.display='none'
 		}
 
 		function administrar_general(){
@@ -174,13 +162,7 @@ block scripts
 			mandar_post('/usuario_admin/cargar_dimensiones','dimensiones')
 			//area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
 		}
-				
-		function administrar_merge(){
-			desaparecer_areas();
-			area_merge.style.display='block'
-			mandar_post('/usuario_admin/cargar_no_oficiales','merge')
-			//area_administrar.innerHTML="<h1> mostrar Dimensiones</h1>"
-		}
+		
 		function seleccionar_servicio(){
 			//var obj =JSON.parse(document.getElementById('select_mis_servicios').value)
 			var val =select_mis_servicios.value.split(",")
@@ -502,11 +484,8 @@ block scripts
 							
 							//area_consultar.display=
 						}
-						if(ruta='usuario_admin/merge'){
-							bootbox.alert("nitido")
-						}
 					}else{
-						bootbox.alert("Error al cargar caracteristicas");
+						alert("Error al cargar caracteristicas");
 					}
 				}
 			};			
@@ -556,19 +535,15 @@ block scripts
 					}					
 				});			
 		}
-		function seleccionar_dimension(){
-			var valor = select_dimensiones.value.split(",")[1]
-			cuerpo_panel_valor.innerHTML=valor;
+
+		function btn_cancelar(){
+			area_seleccionar.style.display='block'
+			area_crear.style.display='none'
 		}
 
-		function btn_eliminar_dim(){
-			post_parametros("id_valor="+select_dimensiones.value.split(",")[0],'usuario_admin/eliminar_valor');
-			administrar_dimensiones();
-			select_dimensiones.remove(select_dimensiones.options.selectedIndex)
-		}
-
-		function btn_merge(){			
-			post_parametros("id_establecimiento="+select_sitios.value,"/usuario_admin/merge")
+		function crear(){
+			area_seleccionar.style.display='none'
+			area_crear.style.display='block'
 		}
 
 block body
@@ -580,188 +555,65 @@ block body
 
 		div(class="jumbotron")
 			h1 Bienvenido administrador	#{username}			
-		.container
+		.container(style='display:block' id='area_seleccionar')
 			.row
-				.col-sm-2(style='background-color:lavender;')
-					h2 Administrar
-					ul.list-group
-						a.list-group-item(onClick="administrar_general();")
-							| General
-						a.list-group-item(onClick="administrar_servicios();")
-							span.badge(id="badge_servicios")
-							| Servicios
-						a.list-group-item(onClick="administrar_caracteristicas();")
-							span.badge(id="badge_caracteristicas")
-							| Caracteristicas
-						a.list-group-item(onClick="administrar_dimensiones();")
-							span.badge(id="badge_dimensiones")
-							| Dimensiones				
-						a.list-group-item(onClick="administrar_merge();")							
-							| Merge
+				.col-sm-2
+				.col-sm-7(style='background-color:lavender;')
+					form(action="/usuario_admin/cargar" , method='POST', accept-charset='utf-8')
+						h2 Seleccione el establecimiento a administrar
+						ul.list-group
+							select.input-group-lg(id='select_establecimientos' name='select_establecimientos' size='5', style='width:100%')								
+								for e in establecimientos
+									option.list-group-item(value="#{e.id}") #{e.nombre}
+						div(align='right', style='padding:5px')
+							input.btn.btn-primary(type="submit" value="Seleccionar" style='width:30%') 
+							button.btn.btn-success(onClick='crear()', type="button" style='width:30%',id='btn_crear') Crear		
 
-				.col-sm-8
-					div(name="area_administrar" id="area_administrar")
-						div(id="area_general" name="area_general" style='display:none')
-							.container
-								form(name='FormCrearEstablecimiento', action='/usuario_admin/actualizar_general', method='POST', accept-charset='utf-8')
-									.row
-										.col-sm-7
-											h2(align='lesft')
-												strong Información General
-											.row
-												.col-sm-3(align='right')
-													label(for='nombre', style='padding:5px') Nombre:
-												.col-sm-9
-													input.form-control(type='text', id="nombre_general", name='nombre', value="'+tuplas[0].valor+'")
-											.row
-												.col-sm-3(align='right')
-													label(for='tipo_establecimiento', style='padding:5px') Tipo:
-												.col-sm-7
-													div(style='padding:5px')
-														!{tipos_establecimientos}
-												.col-sm-2
-													div(style='padding:5px', align='left')
-														button.btn.btn-sm.btn-success(type='button', onclick='agregar_tipo();') agregar
-											.row
-												.col-sm-3(align='right')
-													label(for='descripsion', style='padding:5px') Descripción:
-												.col-sm-9
-													div(style='padding:2px')
-														textarea.form-control(name='descripsion' id='descripsion_general') '+tuplas[4].valor+' 
-											.row
-												.col-sm-3(align='right')
-													label(for='longitud', style='padding:5px') Longitud:
-												.col-sm-2
-													input.form-control(type='number',step='any',id='longitud' ,name='longitud', style='width:115px', value="'+tuplas[1].valor+'")
-												.col-sm-2(align='right')
-													label(for='latitud', style='padding:5px 5px 5px 35px') Latitud:
-												.col-sm-2
-													input.form-control(type='number',step='any',id='latitud', name='latitud', style='width:115px', value="'+tuplas[2].valor+'")
-											.row
-												.col-sm-9
-												.col-sm-3
-													div(align='right', style='padding:5px')
-														input.btn.btn-primary(type='submit', value='Guardar', style='width:100%')
-						div(id="area_servicios" name="area_servicios" style='display:none')
-							.container
-								.row
-									.col-sm-8
-										h2
-											strong Administrar Servicios
-										.row
-											.col-sm-4(align='center')
-												.panel.panel-info
-													.panel-heading(style='background-color:#A9D0F5;')
-														h3.panel-title Todos los servicios
-													.panel-body
-														.list-group
-															select.input-group-lg(id='select_servicios_todos' name='select_servicios_todos' size='7', style='width:100%')
-																option.list-group-item item																		
-																
-											.col-sm-3(align='center')
-												div(style='padding: 10px 0px 0px 0px')
-													.row
-														.col-sm-4
-															button.btn.btn-sm.btn-success(name='btn_crear_servicio', style='width:35px', onclick='agregar_servicio();') + 
-														.col-sm-4
-															button.btn.btn-sm.btn-default(type="button",onClick='btn_sumar_servicio();', style='width:35px;background-color:#E0F8F7;') >>												
-														.col-sm-4
-															button.btn.btn-sm.btn-danger(onClick='btn_restar_servicio()', style='width:35px;') -
-															div(style='padding: 10px 0px 0px 0px')
-																button.btn.btn-sm.btn-warning(onClick='btn_definir_porcentaje()', style='width:35px;') %
-											
-											.col-sm-4(align='center')
-												.panel.panel-info
-													.panel-heading(style='background-color:#E0F8F7;')
-														h3.panel-title Mis Servicios
-													.panel-body
-														.list-group
-															select.input-group-lg(size='7', style='width:100%', id='select_mis_servicios',name='select_mis_servicios', onChange="seleccionar_servicio()")
-														div(align="right" id="div_total")																
-												div(align='right', style='padding:5px')															
-													button.btn.btn-primary(onClick='actualizar_servicios()', style='width:100%',id='btn_guardar_servicios') Guardar
-											
-						div(id="area_caracteristicas" name="area_caracteristicas" style='display:none')
-							.container									
-								.row
-									.col-sm-3										
-										.panel.panel-info
-											.panel-heading
-												h5
-													strong Mis Caracteristicas
-											.panel-body
-												.list-group
-													select.input-group-lg(id="select_atributos" size="6",style="width:100%",onChange='seleccionar_caracteristica()')															
-												div(align="right")
-													button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia(0)') Agregar
-									.col-sm-4										
-										.panel.panel-info
-											.panel-heading
-												h5(id="encabezado_valores") Valores
-											.panel-body
-												.list-group
-													select.input-group-lg(id="select_valores"  size="6",style="width:100%")
-												div(align="right")
-													.row
-														.col-sm-4									
-															button.btn.btn-sm.btn-success(onClick='btn_agregar_valor()') Agregar Valor															
-															br
-														.col-sm-3
-															button.btn.btn-sm.btn-warning(onClick='btn_cantidad_valor()') Cantidad
-															br
-														.col-sm-3									
-															button.btn.btn-sm.btn-danger(onClick='btn_eliminar_valor()') Eliminar																																				
-														
+		.container(style='display:none' id='area_crear')
+				form(name='FormCrearEstablecimiento', action="/usuario_admin/crear",method='POST', accept-charset='utf-8')
+					.row
+						.col-sm-12
+							h2(align='center') 
+								Strong Crea tu Establecimiento!
+							.row
+								.col-sm-3(align="right")
+									label(for='nombre',style='padding:5px') Nombre:
+								.col-sm-7
+									input.form-control(type='text', name='nombre')
+							.row
+								.col-sm-3(align="right")
+									label(for='tipo_establecimiento',style='padding:5px') Tipo:
+								.col-sm-5
+									!{tipos_establecimientos}
+								.col-sm-2
+									div(style="padding:5px",align="left")
+										button.btn.btn-sm.btn-success(type="button",onClick="agregar_tipo();") agregar
+							.row
+								.col-sm-3(align="right")
+									label(for='descripsion',style='padding:5px') Descripción:
+								.col-sm-7
+									div(style='padding:2px')
+										textarea.form-control(name='descripsion')
+							.row
+								.col-sm-3(align="right")
+									label(for='longitud',style='padding:5px') Longitud:
+								.col-sm-2
+									input.form-control(type='number',step='any', name='longitud',style="width:115px")
+								.col-sm-2(align="right")							
+									label(for='latitud',style='padding:5px 5px 5px 35px') Latitud:
+								.col-sm-2
+									input.form-control(type='number',step='any', name='latitud', style="width:115px")
+							.row
+								.col-sm-7
+								.col-sm-3
+									div(align="right", style="padding:5px")
+										input.btn.btn-primary(type='submit', value='Crear',style="width:100%")
+									button.btn.btn-danger(onClick='btn_cancelar()',type="button", style='width:30%') Cancelar
+					
+						
 
-						div(id="area_dimensiones" name="area_dimensiones" style='display:none')
-							.container									
-								.row
-									.col-sm-3										
-										.panel.panel-info
-											.panel-heading
-												h5
-													strong Mis dimensiones
-											.panel-body
-												.list-group
-													select.input-group-lg(id="select_dimensiones" size="6",style="width:100%",onChange='seleccionar_dimension()')
-												div(align="right")
-													.row
-														.col-sm-4
-															button.btn.btn-sm.btn-success(onclick='btn_agregar_caracteristica_mia(1)') Agregar
-														.col-sm-3									
-															button.btn.btn-sm.btn-danger(onClick='btn_eliminar_dim()') Eliminar
-									.col-sm-4										
-										.panel.panel-info
-											.panel-heading
-												h5(id="encabezado_valor_dimension") Valores
-											.panel-body
-												h3(id="cuerpo_panel_valor") valor														
-																								
-																					
-						div(id="area_merge" name="area_merge" style="display:none")
-							.container									
-								.row
-									.col-sm-6										
-										.panel.panel-info
-											.panel-heading
-												h5
-													strong Sitios No Oficiales
-											.panel-body
-												.list-group
-													select.input-group-lg(id="select_sitios" size="6",style="width:100%")
-												div(align="right")
-													.row
-														.col-sm-2
-															button.btn.btn-sm.btn-success(onclick='btn_merge();') Merge																						
-						div(id="area_bienvenida" name="area_bienvenida")
-							div.alert.alert-info Esta area es para 
-								strong administrar 
-								|las caracteristicas y servicios									
-				.col-sm-2(style='background-color:lavenderblush;')
-					div(name="area_consultar" id="area_consultar")							
+		
 
-							
-		br
 		br
 		br
 		br

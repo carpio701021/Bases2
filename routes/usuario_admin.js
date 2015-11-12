@@ -12,16 +12,14 @@ var generar_html_caracteristicas = function(tuplas) {
 	return s;
 }
 
-
-router.get('/', function(req, res, next) {
-
+router.get('/', function(req, res, next) {	
 	if (!(req.user_session && req.user_session.id)) { //componer
 		res.redirect('/login?error=debe iniciar sesion primero');
 	}
 
 
 	var dbconnection = require('../routes/dbconnection.js');
-	var str_query = "call selectAtributosOwner(" + req.user_session.id + ");";
+	var str_query = "call selectAtributosOwner(" + req.user_session.id_establecimiento + ");";
 	dbconnection.exe_query(
 		str_query,
 		tiene_establecimiento,
@@ -61,9 +59,66 @@ router.get('/', function(req, res, next) {
 		}
 
 	}
+});
+
+router.get('/seleccionar', function(req, res, next) {
+	console.log('PARAMETRO')
+	console.log(req.query.id_establecimiento)
+	if (!(req.user_session && req.user_session.id)) { //componer
+		res.redirect('/login?error=debe iniciar sesion primero');
+	}
 
 
-	//res.render('usuario_admin/principal', { username: req.user_session.usuario,otra: '<button>caca </button>' });
+	var dbconnection = require('../routes/dbconnection.js');
+	var str_query = "call selectEstablecimientosOwner(" + req.user_session.id + ");";
+	dbconnection.exe_query(
+		str_query,
+		tiene_establecimiento,
+		res);
+
+	function tiene_establecimiento(resultados) {	
+		console.log(resultados[0])
+
+		var str_query = "SELECT * FROM outguat.tipoestablecimiento;";
+		var dbconnection = require('../routes/dbconnection.js');
+		dbconnection.exe_query(str_query,
+			tipos_establecimiento,
+			res);
+
+		function tipos_establecimiento(tipos) {
+			genera_html_tipos(tipos);					
+			res.render('usuario_admin/seleccionar', {
+				username: req.user_session.usuario,				
+				tipos_establecimientos: select_html,
+				establecimientos: resultados[0]
+			});
+		}
+
+	}
+});
+
+
+router.post('/cargar', function(req, res, next) {
+	console.log('PARAMETRO')
+	console.log(req.body.select_establecimientos)
+	if (!(req.user_session && req.user_session.id)) { //componer
+		res.redirect('/login?error=debe iniciar sesion primero');
+	}
+	req.user_session.id_establecimiento=req.body.select_establecimientos;
+	var str_query = "SELECT * FROM outguat.tipoestablecimiento;";
+	var dbconnection = require('../routes/dbconnection.js');
+	dbconnection.exe_query(str_query,
+		tipos_establecimiento,
+		res);
+	function tipos_establecimiento(tipos) {
+		genera_html_tipos(tipos);			
+		console.log(tipos);
+		console.log(select_html);
+		res.render('usuario_admin/principal', {
+			username: req.user_session.usuario,				
+			tipos_establecimientos: select_html
+		});
+	}
 });
 
 var genera_html_tipos = function(tipos) {
@@ -90,7 +145,7 @@ router.post('/crear', function(req, res, next) {
 		res);
 
 	function crear(resultados) {
-		res.redirect('/usuario_admin');
+		res.redirect('/usuario_admin/seleccionar');
 	}
 
 });
@@ -150,7 +205,7 @@ router.post('/actualizar_servicios', function(req, res, next) {
 	var id_establecimiento = req.user_session.id_establecimiento;
 	console.log("estab: " + id_establecimiento)
 	var dbconnection = require('../routes/dbconnection.js');
-	var str_query = "call selectServicioOwner(" + user + ");";
+	var str_query = "call selectServicioOwner(" + id_establecimiento + ");";
 	dbconnection.exe_query(
 		str_query,
 		comparar_servicios,
@@ -215,7 +270,7 @@ router.post('/actualizar_servicios', function(req, res, next) {
 
 router.post('/cargar_dimensiones',function(req,res,next){	
 	var dbconnection = require('../routes/dbconnection.js'); 	
-	var str_query = "call selectAtributosOwner("+req.user_session.id+");";
+	var str_query = "call selectAtributosOwner("+req.user_session.id_establecimiento+");";
 	dbconnection.exe_query(
 		str_query,
 		function(result){
@@ -224,11 +279,31 @@ router.post('/cargar_dimensiones',function(req,res,next){
 		res);	
 });
 
-router.post('/cargar_servicios', function(req, res, next) {
+router.post('/cargar_no_oficiales',function(req,res,next){	
+	var dbconnection = require('../routes/dbconnection.js'); 	
+	var str_query = "call selectNoOficiales();";
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result)
+		},
+		res);	
+});
 
-	var user = req.user_session.id;
+router.post('/merge',function(req,res,next){	
+	var dbconnection = require('../routes/dbconnection.js'); 	
+	var str_query = "call Merge("+req.user_session.id_establecimiento+","+req.body.id_establecimiento+");";
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result)
+		},
+		res);	
+});
+router.post('/cargar_servicios', function(req, res, next) {
+	
 	var dbconnection = require('../routes/dbconnection.js');
-	var str_query = "call selectServicioOwner(" + user + ");";
+	var str_query = "call selectServicioOwner(" + req.user_session.id_establecimiento + ");";
 	dbconnection.exe_query(
 		str_query,
 		consultar_servicios_todos,
@@ -259,14 +334,14 @@ router.post('/cargar_servicios', function(req, res, next) {
 router.post('/cargar_caracteristicas',function(req,res,next){
 	var user= req.user_session.id;	
 	var dbconnection = require('../routes/dbconnection.js'); 	
-	var str_query = "call selectAtributosOwner("+req.user_session.id+");";
+	var str_query = "call selectAtributosOwner("+req.user_session.id_establecimiento+");";
 	dbconnection.exe_query(
 		str_query,
 		cargar_sin_repetir,
 		res);
 
 	function cargar_sin_repetir(atributos_valores) {
-		str_query = "call selectAtributosOwnerSinRepetir(" + req.user_session.id + ");";
+		str_query = "call selectAtributosOwnerSinRepetir(" + req.user_session.id_establecimiento + ");";
 		dbconnection.exe_query(
 			str_query,
 			function(atributos_tipos) {
@@ -280,6 +355,18 @@ router.post('/cargar_caracteristicas',function(req,res,next){
 	}
 });
 
+
+
+router.post('/get_calificacion', function(req, res, next) {
+	var dbconnection = require('../routes/dbconnection.js');
+	var str_query = "select outguat.selectCalificacionServicio("+req.body.id_servicio+","+req.user_session.id+");";
+	dbconnection.exe_query(
+		str_query,
+		function(data) {
+			res.send(data)
+		},
+		res);
+});
 
 
 router.post('/cargar_caracteristicas_todas', function(req, res, next) {
@@ -319,7 +406,7 @@ router.post('/eliminar_valor',function(req,res,next){
 router.post('/cargar_general',function(req,res,next){
 	var user= req.user_session.id;	
 	var dbconnection = require('../routes/dbconnection.js'); 	
-	var str_query = "call selectAtributosOwner("+req.user_session.id+");";
+	var str_query = "call selectAtributosOwner("+req.user_session.id_establecimiento+");";
 	dbconnection.exe_query(
 		str_query,
 		generar_general,
