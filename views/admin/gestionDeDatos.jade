@@ -1,0 +1,47 @@
+extends BaseAdmin
+
+block scripts
+	script.
+		
+
+block body
+	div.container
+		br
+		br
+		br
+		br
+		h1 Gestión de datos
+		.container
+			.row
+				.col-sm-3(style='background-color:#A9BCF5;')
+					h3 Opciones
+					ul.list-group
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse1x')
+							| Importar
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse2x')
+							| Exportar
+				.col-sm-8
+					#accordionx.panel-group
+						.panel.panel-default
+							#collapse1x.panel-collapse.collapse.in
+								h2 Importar	BD	
+								form(action="/admin/importarBD", method="post", enctype="multipart/form-data")
+									b Adjuntar Archivo:
+									input(type='file',id="archToImport",name="archToImport") 
+									input(type='submit',value='Importar')
+
+							#collapse2x.panel-collapse.collapse
+								h2 Exportar BD
+
+
+
+		.container(align='right')
+			div(style="width:51%",align='center')
+				if error2
+					.alert.alert-danger(role='alert')
+						strong #{error2}
+				if exito2
+					.alert.alert-success(role='alert')
+						strong #{exito2}	
+
+
