@@ -6,9 +6,33 @@ block scripts
 			var data="id_usuario="+select_usuarios.value
 			post_parametros(data,'/admin/reportes/filtro1')
 		}
+		function btn_reporte4(){
+			var data="usuario="+select_usuarios4.value+"&accion="+select_accion.value+"&fecha="+fecha.value+"&establecimiento="+select_establecimiento4.value;
+			alert(data)
+			post_parametros(data,'/admin/reportes/reporte4')
+		}
+		function btn_reporte3(){
+			var data="nombre="+select_establecimiento3.value+"&tipo="+select_tipo.value+"&esferas="+select_esferas.value+"&servicio="+select_servicio.value;
+			alert(data)
+			post_parametros(data,'/admin/reportes/reporte3')
+		}
+		function btn_reporte2(){
+			var data="tipo="+select_tipo2.value+"&servicio="+select_servicio2.value;
+			alert(data)
+			post_parametros(data,'/admin/reportes/reporte2')
+		}
+		function reporte5(){
+			var data="nada=5"
+			post_parametros(data,'/admin/reportes/reporte5')
+		}
 		function limpiar_select(select){			
 			for(var o in select){
 				select.options.remove(o);
+			}
+		}
+		function limpriar_tabla(tabla){
+			while(tabla.rows.length>1){
+				tabla.deleteRow(1)
 			}
 		}
 		function post_parametros(data_to_send,ruta){
@@ -17,8 +41,7 @@ block scripts
 			xmlobj.onreadystatechange = function(){			
 				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
-						var obj=JSON.parse(xmlobj.responseText);
-						//alert(xmlobj.responseText)
+						var obj=JSON.parse(xmlobj.responseText);						
 						if(ruta=='/admin/reportes/filtro1'){
 							limpiar_select(select_resultado)
 							for(var i=0;i<obj.length;i++){					
@@ -29,6 +52,71 @@ block scripts
 								select_resultado.add(option)
 							}					
 							lbl_total.innerHTML='Total: '+obj.length
+						}	
+						if(ruta=='/admin/reportes/reporte5'){							
+							for(var i=0;i<obj.length;i++){															
+								var row = tabla_usuarios.insertRow(1);								
+								var cell1 = row.insertCell(0);
+								var cell2 = row.insertCell(1);
+								var cell3 = row.insertCell(2);
+								var cell4 = row.insertCell(3);
+								var cell5 = row.insertCell(4);
+								var cell6 = row.insertCell(5);
+								var cell7 = row.insertCell(6);							
+								cell1.innerHTML = obj[i]['usuario'];
+								cell2.innerHTML = obj[i]['nombre'];							
+								cell3.innerHTML = obj[i]['fechaNacimiento']
+								cell4.innerHTML = obj[i]['telefono']					
+								cell5.innerHTML = obj[i]['correo']
+								cell6.innerHTML = obj[i]['genero']								
+								cell7.innerHTML = obj[i]['idTipoUsuario'];														
+							}												
+						}
+						if(ruta=='/admin/reportes/reporte4'){	
+							limpiar_select(select_resultado4)						
+							for(var i=0;i<obj.length;i++){		
+								var option = document.createElement('option')
+								option.value=obj[i]['id']
+								option.innerHTML=obj[i]['idUsuario']+" "+obj[i]['descripcion'] + " "+ obj[i]['fecha']
+								option.className='list-group-item'								
+								select_resultado4.add(option)
+							}												
+						}
+						if(ruta=='/admin/reportes/reporte3'){		
+						limpriar_tabla(tabla_reporte3)					
+							for(var i=0;i<obj.length;i++){		
+								var row = tabla_reporte3.insertRow(1);								
+								var cell1 = row.insertCell(0);
+								var cell2 = row.insertCell(1);								
+								cell1.innerHTML = '<a href="/establecimiento?id='+obj[i]['id']+'">'+ obj[i]['valor']+'</a>'
+								cell2.innerHTML = obj[i]['nombre'];															
+							}												
+						}			
+						if(ruta=='/admin/reportes/reporte2'){		
+						limpriar_tabla(tabla_reporte2)					
+							var tot=0;							
+							var cantidad=0;
+							var cali;
+							for(var i=0;i<obj.length;i++){		
+								var row = tabla_reporte2.insertRow(1);								
+								var cell1 = row.insertCell(0);
+								var cell2 = row.insertCell(1);								
+								var cell3 = row.insertCell(2);		
+								cell1.innerHTML = '<a href="/establecimiento?id='+obj[i]['id']+'">'+ obj[i]['valor']+'</a>'
+								cell2.innerHTML = obj[i]['nombre'];															
+								cali=obj[i]['calificacion']
+								if(cali!=null){
+									cantidad=cantidad+1;
+									tot=tot+cali								
+									cell3.innerHTML = cali;
+								}else
+									cell3.innerHTML = 'sin calificar';
+								
+							}								
+							if(cantidad!=0)
+								titulo2.innerHTML='Puntuacion: ' + tot/cantidad
+							else 
+								titulo2.innerHTML='Puntuacion: ninguna'
 						}						
 					}else{
 						bootbox.alert("Error al cargar");
@@ -61,7 +149,7 @@ block body
 							| 3. Busquedas
 						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse4')
 							| 4. Bitácora de transacciones
-						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse5')
+						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse5',onClick="reporte5()")
 							| 5. Usuarios
 				.col-sm-8
 					#accordionx.panel-group
@@ -86,8 +174,8 @@ block body
 										.col-sm-2
 											select.form-control(id='select_establecimiento')
 												option(value='-1') Todos
-												option(value='0') establecimiento1
-												option(value='1') establecimiento2
+												for e in establecimientos
+													option(value="#{e.valor}") #{e.valor}
 									br
 									.row
 										.col-sm-3
@@ -121,15 +209,174 @@ block body
 							#collapse2.panel-collapse.collapse
 								h2 Puntuaciones
 								|2. Reporte de puntuación general, por servicio y por tipo de Establecimiento, filtros: Tipo de establecimiento, categorías y servicios. Hacer un Top 10 y listado completo.
+								.container									
+									br
+									.row
+										.col-sm-2
+											b Servicio:
+										.col-sm-2
+											select.form-control(id='select_servicio2')
+												option(value='-1') Todos
+												for s in servicios
+													option(value="#{s.id}") #{s.nombre}		
+									br
+									.row
+										.col-sm-2
+											b Tipo:
+										.col-sm-2
+											select.form-control(id='select_tipo2')
+												option(value='-1') Todos
+												for t in tipos
+													option(value="#{t.id}") #{t.nombre}
+									br
+									.row
+										.col-sm-3
+										.col-sm-2
+											button.btn.btn-primary(type="button", onClick="btn_reporte2()") Buscar
+									br
+									.row
+										.col-sm-7
+											.container(style="width:100%")
+												h2(id="titulo2") Puntuación								
+												table.table(id="tabla_reporte2")
+													thead
+														tr
+															th Nombre
+															th Tipo		
+															th Calificación
 							#collapse3.panel-collapse.collapse
 								h2 Busquedas
 								|3. Reporte de Búsqueda de establecimientos por los siguientes filtros: nombre, tipo de establecimiento, número de esferas, servicios, dirección, cercanía, evaluaciones (comentarios).
+								.container									
+									br
+									.row
+										.col-sm-2
+											b Nombre:
+										.col-sm-2
+											select.form-control(id='select_establecimiento3')
+												option(value='-1') Todos
+												for e in establecimientos
+													option(value="#{e.valor}") #{e.valor}
+									br
+									.row
+										.col-sm-2
+											b Tipo:
+										.col-sm-2
+											select.form-control(id='select_tipo')
+												option(value='-1') Todos
+												for t in tipos
+													option(value="#{t.id}") #{t.nombre}
+									br
+									.row
+										.col-sm-2
+											b Numero Esferas:
+										.col-sm-2
+											select.form-control(id='select_esferas')
+												option(value='-1') Todos
+												option(value='0') 0												
+												option(value='1') 1
+												option(value='2') 2
+												option(value='3') 3
+												option(value='4') 4
+												option(value='5') 5
+												option(value='6') 6
+												option(value='7') 7
+									br
+									.row
+										.col-sm-2
+											b Servicio:
+										.col-sm-2
+											select.form-control(id='select_servicio')
+												option(value='-1') Todos
+												for s in servicios
+													option(value="#{s.id}") #{s.nombre}								
+
+									br
+									.row
+										.col-sm-3
+										.col-sm-2
+											button.btn.btn-primary(type="button", onClick="btn_reporte3()") Buscar
+									br
+									.row
+										.col-sm-7
+											.container(style="width:100%")
+												h2 Establecimientos								
+												table.table(id="tabla_reporte3")
+													thead
+														tr
+															th Nombre
+															th Tipo														
 							#collapse4.panel-collapse.collapse
 								h2 Bitácora de transacciones
 								|4. Reporte de Bitácora de transacciones (Registros de auditoria): Filtros: por fecha, acción, establecimiento, usuario. 
-							#collapse5.panel-collapse.collapse
-								h2 Usuarios
-								|5. Reporte de usuarios. Datos de los usuarios.	
+
+								.container
+									br
+									.row
+										.col-sm-2
+											b Usuarios:
+										.col-sm-2
+											select.form-control(id='select_usuarios4')
+												option(value='-1') Todos
+												for u in usuarios
+													option(value="#{u.id}") #{u.usuario}
+									br
+									.row
+										.col-sm-2
+											b Accion:
+										.col-sm-2
+											select.form-control(id='select_accion')
+												option(value='-1') Todos
+												option(value='creo') Insertar
+												option(value='modifico') Actualizar
+												option(value='asigno') Asignacion
+									br
+									.row
+										.col-sm-2
+											b Fecha:
+										.col-sm-2
+											div(class='6u$')
+												.2u(class='2u$(xsmall)')
+													input.form-control(type='date', id='fecha')
+									br
+									.row
+										.col-sm-2
+											b Establecimiento:
+										.col-sm-2
+											select.form-control(id='select_establecimiento4')
+												option(value='-1') Todos
+												for e in establecimientos
+													option(value="#{e.valor}") #{e.valor}
+
+									br
+									.row
+										.col-sm-3
+										.col-sm-2
+											button.btn.btn-primary(type="button", onClick="btn_reporte4()") Buscar
+									br
+									.row
+										.col-sm-7
+											.panel.panel-info
+													.panel-heading(style='background-color:#A9D0F5;')
+														h3.panel-title Resultado
+													.panel-body
+														.list-group
+															select.input-group-lg(id='select_resultado4' size='5', style='width:100%')
+
+							#collapse5.panel-collapse.collapse														
+								.container(style="width:100%")
+									h2 Usuarios								
+									table.table(id="tabla_usuarios")
+										thead
+											tr
+												th Usuario
+												th Nombre
+												th Direccion
+												th Telefono
+												th Correo
+												th Genero
+												th Tipo										
+
 
 
 
