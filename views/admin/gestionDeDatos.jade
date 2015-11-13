@@ -23,11 +23,26 @@ block body
 				.col-sm-8
 					#accordionx.panel-group
 						.panel.panel-default
-							#collapse1x.panel-collapse.collapse.in
+							#collapse1x.panel-collapse.collapse.in.container
 								h2 Importar	BD	
 								form(action="/admin/importarBD", method="post", enctype="multipart/form-data")
 									b Adjuntar Archivo:
+									br
 									input(type='file',id="archToImport",name="archToImport") 
+									br
+									b Tipo de archivo:
+									br
+									select(name='tipo')
+										option 1
+										option 2
+										option 3
+										option 4
+										//option 5
+										option 6
+										option 7
+
+									br
+									br
 									input(type='submit',value='Importar')
 
 							#collapse2x.panel-collapse.collapse

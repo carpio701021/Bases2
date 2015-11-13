@@ -2,9 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 //datos de conexion de la base de datos
-default_dbhost='192.168.1.4';
+default_dbhost='localhost';
 default_dbuser='root';
-default_dbpassword='pokemon33';
+default_dbpassword='1234';
 default_db = 'OutGuat';
 
 var if_error = function(res){

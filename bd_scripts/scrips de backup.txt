@@ -1,15 +1,15 @@
 scrips de backup
 
-mysqldump -u soft -p outguat > backup_grupo5.sql
+mysqldump -u root -p OutGuat > backup_grupo5.sql
 
-mysql -u soft -p outguat < backup_grupo5.sql
+mysql -u root -p OutGuat < backup_grupo5.sql
 
 
 
-cd C:\ProgramData\MySQL\MySQL Server 5.6\data
-copy NP-355V4C-WN.log NP-355V4C-WN.log.old
 
-SET GLOBAL log_output = 'TABLE';
-SET GLOBAL general_log = 'ON';
+/etc/mysql/my.cnf
+[mysqld]
+log-bin=mysql-bin
 
-SET GLOBAL log_bin_trust_function_creators = 1;
+
+PURGE BINARY LOGS BEFORE NOW();

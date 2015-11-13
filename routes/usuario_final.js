@@ -61,7 +61,7 @@ router.get('/establecimiento_nuevo', function(req, res, next) {
 		var admin_caracteristicas_html = "";
 		console.log(resultados[0])
 
-		var str_query = "SELECT * FROM outguat.tipoestablecimiento;";
+		var str_query = "SELECT * FROM tipoestablecimiento;";
 		var dbconnection = require('../routes/dbconnection.js');
 		dbconnection.exe_query(str_query,
 			tipos_establecimiento,
@@ -194,7 +194,7 @@ router.post('/establecimiento/comentar', function(req, res, next) {
 	//llamada al objeto base de datos
 	var dbconnection = require('../routes/dbconnection.js');
 	//Metodo que realiza la consulta a la base de datos y devuelve:
-	var str_query = "select outguat.insertComentario(" + 
+	var str_query = "select insertComentario(" + 
 		idEstablecimiento + ',' +
 		idUsuario +  ',\'' +
 		comentario + "');";

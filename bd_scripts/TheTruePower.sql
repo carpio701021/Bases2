@@ -1,4 +1,8 @@
 -- INSERTS
+
+ALTER TABLE Calificacion ADD FOREIGN KEY(idEstablecimiento)
+REFERENCES EstablecimientoServicio(idEstablecimiento) ON DELETE RESTRICT ON UPDATE CASCADE;
+
 DROP FUNCTION IF EXISTS insertBitacora;
 DELIMITER $$
 CREATE FUNCTION insertBitacora(
@@ -34,13 +38,16 @@ CREATE FUNCTION insertCalificacion(
   ) RETURNS INT
 BEGIN
   DECLARE i INT;
+  DECLARE nom VARCHAR(128);
   select count(*) from Calificacion where idEstablecimiento=_idEstablecimiento AND idServicio=_idServicio AND idUsuario=_idUsuario into i;
   IF i=1 THEN
 	UPDATE Calificacion SET punteo = _punteo WHERE idEstablecimiento=_idEstablecimiento AND idUsuario=_idUsuario AND idServicio=_idServicio;
-    INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se modifico la calificacion con id ',last_insert_id()));
+  Select V.valor from Valor V, Establecimiento E WHERE E.id=V.idEstablecimiento AND V.idAtributo=1 AND V.idEstablecimiento=_idEstablecimiento into nom;
+    INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se modifico la calificacion con id ',last_insert_id(),' del establecimiento ',nom));
   ELSE
 	INSERT INTO Calificacion (idEstablecimiento, idServicio, idUsuario,punteo) VALUES (_idEstablecimiento, _idServicio, _idUsuario, _punteo);
-	INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una calificacion con id ',last_insert_id()));
+  Select V.valor from Valor V, Establecimiento E WHERE E.id=V.idEstablecimiento AND V.idAtributo=1 AND V.idEstablecimiento=_idEstablecimiento into nom;
+  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una calificacion con id ',last_insert_id(),' del establecimiento ',nom));
   END IF;
   RETURN last_insert_id();
 END $$
@@ -60,9 +67,10 @@ CREATE FUNCTION insertComentario(
   ) RETURNS INT
 BEGIN
 
-
+  DECLARE nom VARCHAR(128);
   INSERT INTO Comentario (idEstablecimiento, idUsuario,comentario) VALUES (_idEstablecimiento, _idUsuario, _comentario);
-  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo un comentario con id ',last_insert_id()));
+  Select V.valor from Valor V, Establecimiento E WHERE E.id=V.idEstablecimiento AND V.idAtributo=1 AND V.idEstablecimiento=_idEstablecimiento into nom;
+  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo un comentario con id ',last_insert_id(),' ',nom));
   RETURN last_insert_id();
 END $$
 DELIMITER ;
@@ -80,6 +88,19 @@ CREATE FUNCTION insertEstablecimiento(
   ) RETURNS INT
 BEGIN
   DECLARE ult INT;
+  IF _oficial = 0 THEN
+  INSERT INTO Establecimiento (idTipoEstablecimiento) VALUES (_idTipoEstablecimiento);
+  SET ult=last_insert_id();
+  INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,1,_nombre);
+  INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,2,_latitud);
+  INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,3,_longitud);
+  INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,4,_oficial);
+  INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,5,_descripcion);
+  INSERT INTO EstablecimientoServicio (idServicio,idEstablecimiento,porcentaje) VALUES (26,ult,100);
+  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_oficial, CONCAT('Se creo el establecimiento ',_nombre));
+
+
+else
   INSERT INTO Establecimiento (idTipoEstablecimiento) VALUES (_idTipoEstablecimiento);
   SET ult=last_insert_id();
   INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,1,_nombre);
@@ -88,9 +109,12 @@ BEGIN
   INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,4,_oficial);
   INSERT INTO Valor (idEstablecimiento,idAtributo,valor) VALUES (ult,5,_descripcion);
   INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_oficial, CONCAT('Se creo el establecimiento ',_nombre));
-  RETURN last_insert_id();
+  RETURN 2;
+  END IF;
+RETURN 2;
 END $$
 DELIMITER ;
+
 
 DROP FUNCTION IF EXISTS insertReserva;
 DELIMITER $$
@@ -100,31 +124,19 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `insertReserva`(
     _fechaInicio DATETIME,
     _fechaFin DATETIME,
     _cantidad INT
-<<<<<<< HEAD
-  ) RETURNS INT
-=======
   ) RETURNS int(11)
->>>>>>> refs/remotes/origin/master
 BEGIN
   DECLARE a INT;
   INSERT INTO Reserva (idUsuario, idValor, fechaInicio, fechaFin) VALUES (_idUsuario, _idValor, _fechaInicio, _fechaFin);
   select cantidad from Valor Where id=_idValor into a;
-<<<<<<< HEAD
-  IF a<_cantidad THEN
-=======
   IF a=0 THEN
->>>>>>> refs/remotes/origin/master
   RETURN 0;
   ELSE
   UPDATE Valor SET cantidad = a-_cantidad WHERE id=_idValor;
   INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se creo una reserva con id ',last_insert_id()));
   RETURN 1;
   END IF;
-<<<<<<< HEAD
-END $$
-=======
 END  $$
->>>>>>> refs/remotes/origin/master
 DELIMITER ;
 
 
@@ -158,9 +170,11 @@ CREATE FUNCTION insertEstablecimientoServicio(
   ) RETURNS INT
 BEGIN
 DECLARE `_rollBack` BOOL DEFAULT 0;
+DECLARE nom VARCHAR(128);
       DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET `_rollBack` = 1;
   INSERT INTO EstablecimientoServicio (idServicio,idEstablecimiento,porcentaje) VALUES (_idServicio,_idEstablecimiento,_porcentaje);
-  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se asigno servicio ',_idServicio,' a ',' establecimiento ',_idEstablecimiento));
+  Select V.valor from Valor V, Establecimiento E WHERE E.id=V.idEstablecimiento AND V.idAtributo=1 AND V.idEstablecimiento=_idEstablecimiento into nom;
+  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (_idUsuario, CONCAT('Se asigno servicio ',_idServicio,' a ',' establecimiento ',_idEstablecimiento,' ',nom));
       IF `_rollBack` THEN
     RETURN 0;
       ELSE
@@ -233,9 +247,11 @@ CREATE FUNCTION insertValor(
   ) RETURNS INT
 BEGIN
 DECLARE a VARCHAR(5);
+DECLARE nom VARCHAR(128);
   INSERT INTO Valor (idEstablecimiento,idAtributo,cantidad,valor) VALUES (_idEstablecimiento,_idAtributo,_cantidad,_valor);
   select V.valor from Valor V Where V.idEstablecimiento=_idEstablecimiento AND V.idAtributo=4 into a;
-  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (a, CONCAT('Se creo el valor de ',_valor));
+  Select V.valor from Valor V, Establecimiento E WHERE E.id=V.idEstablecimiento AND V.idAtributo=1 AND V.idEstablecimiento=_idEstablecimiento into nom;
+  INSERT INTO Bitacora (idUsuario, descripcion) VALUES (a, CONCAT('Se creo el valor de ',_valor,' ',nom));
   RETURN last_insert_id();
 END $$
 DELIMITER ;
@@ -370,6 +386,7 @@ UPDATE Establecimiento SET idTipoEstablecimiento = _idTipoEstablecimiento WHERE 
 END $$
 DELIMITER ;
 -- OTROS
+
 DROP FUNCTION IF EXISTS Calificar;
 DELIMITER $$
 CREATE FUNCTION Calificar(
@@ -384,16 +401,41 @@ DECLARE o INT;
 DECLARE u INT;
 DECLARE e INT;
 DECLARE p INT;
+DECLARE ii INT;
+DECLARE general Double;
+DECLARE pro INT;
 DECLARE mm DOUBLE default 0.00;
+
+select count(*) from EstablecimientoServicio where idEstablecimiento=_idEstablecimiento and idServicio=26 into ii;
+
+if ii>0 THEN
 SELECT count(*) FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento into n;
 WHILE i<n DO
   SELECT ES.idServicio FROM EstablecimientoServicio ES WHERE  idEstablecimiento=_idEstablecimiento limit i,1 INTO e;
-  SELECT AVG(punteo) FROM Calificacion WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e limit i,1 INTO u;
+  SELECT AVG(punteo) FROM Calificacion WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e INTO u;
   SELECT porcentaje FROM EstablecimientoServicio WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e INTO p;
   SET nota= nota+(u*(p/100));
   SET i=i+1;
 
 END WHILE;
+  select AVG(punteo) FROM Calificacion WHERE idEstablecimiento=_idEstablecimiento AND idServicio=26 into pro;
+Update Establecimiento set calificacion=(nota+pro)/2 where id=_idEstablecimiento;
+RETURN (nota+pro)/2;
+else
+
+SELECT count(*) FROM EstablecimientoServicio WHERE  idEstablecimiento=_idEstablecimiento into n;
+WHILE i<n DO
+  SELECT ES.idServicio FROM EstablecimientoServicio ES WHERE  idEstablecimiento=_idEstablecimiento limit i,1 INTO e;
+  SELECT AVG(punteo) FROM Calificacion WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e INTO u;
+  SELECT porcentaje FROM EstablecimientoServicio WHERE idEstablecimiento=_idEstablecimiento AND idServicio=e INTO p;
+  SET nota= nota+(u*(p/100));
+  SET i=i+1;
+
+END WHILE;
+Update Establecimiento set calificacion=nota/2 where id=_idEstablecimiento;
+RETURN nota;
+END IF;
+Update Establecimiento set calificacion=nota where id=_idEstablecimiento;
 RETURN nota;
 END $$
 DELIMITER ;
@@ -475,17 +517,6 @@ select E.id, E.idTipoEstablecimiento, V.valor from Establecimiento E, Valor V wh
 END $$
 DELIMITER ;
 
-
-DROP Procedure IF EXISTS selectBitacora;
-DELIMITER $$
-CREATE Procedure selectBitacora(
-)
-BEGIN
-select * from Bitacora;
-END $$
-DELIMITER ;
-
-
 DROP Procedure IF EXISTS selectComentario;
 DELIMITER $$
 CREATE Procedure selectComentario(
@@ -508,6 +539,7 @@ where V.idAtributo = A.id AND V.idEstablecimiento=_id AND A.dimension=0;
 
 END $$
 DELIMITER ;
+
 
 DROP Procedure IF EXISTS selectServicioTodos;
 DELIMITER $$
@@ -561,11 +593,9 @@ CREATE Procedure selectServicioOwner(
 BEGIN
 DECLARE p INT;
 select S.id, S.nombre, ES.porcentaje
-from Servicio S, EstablecimientoServicio ES, Valor V
+from Servicio S, EstablecimientoServicio ES
 where S.id=ES.idServicio
-and V.idAtributo=4
-and V.Valor=_id
-and V.idEstablecimiento=ES.idEstablecimiento;
+AND ES.idEstablecimiento=_id;
 END $$
 DELIMITER ;
 
@@ -576,10 +606,9 @@ CREATE Procedure selectAtributosOwnerSinRepetir(
   )
 BEGIN
 DECLARE p INT;
-select V.idEstablecimiento as valor from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id into p;
 select A.id, A.nombre, A.dimension
 from Valor V, Atributo A, Establecimiento E
-where V.idAtributo = A.id AND E.id=p AND V.idEstablecimiento=p
+where V.idAtributo = A.id AND E.id=_id AND V.idEstablecimiento=_id
 group by A.nombre;
 END $$
 DELIMITER ;
@@ -602,16 +631,40 @@ CREATE Procedure selectAtributosOwner(
   )
 BEGIN
 DECLARE p INT;
-select V.idEstablecimiento as valor from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id into p;
-<<<<<<< HEAD
-select A.id, E.id AS idEstablecimiento,V.id AS idValor,E.idTipoEstablecimiento, A.nombre, V.valor,V.cantidad, A.dimension
-=======
 select E.id AS idEstablecimiento,V.id AS idValor,E.idTipoEstablecimiento, A.nombre, V.valor,V.cantidad, A.dimension
->>>>>>> refs/remotes/origin/master
 from Valor V, Atributo A, Establecimiento E
-where V.idAtributo = A.id AND E.id=p AND V.idEstablecimiento=p;
+where V.idAtributo = A.id AND E.id=_id AND V.idEstablecimiento=_id;
 END $$
 DELIMITER ;
+
+DROP Procedure IF EXISTS selectEstablecimientosOwner;
+DELIMITER $$
+CREATE Procedure selectEstablecimientosOwner(
+    _id INT
+  )
+BEGIN
+select A.id, B.nombre from (select  V.idEstablecimiento as id from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id order by V.id) A
+inner join
+(select E.id as uno, V.valor as nombre from Valor V, Atributo A, Establecimiento E where A.id=1 and V.idAtributo=A.id and E.id= V.idEstablecimiento and E.id IN (select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=_id and V.idAtributo = A.id ORDER BY V.id)Order by V.id) B
+on B.uno =A.id;
+END $$
+DELIMITER ;
+
+
+DROP Procedure IF EXISTS selectNoOficiales;
+DELIMITER $$
+CREATE Procedure selectNoOficiales(
+  )
+BEGIN
+
+select A.id, B.nombre from (select  V.idEstablecimiento as id from Valor V, Atributo A where A.id=4 and V.valor=0 and V.idAtributo = A.id ORDER BY V.id) A
+inner join
+(select E.id as uno, V.valor as nombre from Valor V, Atributo A, Establecimiento E where A.id=1 and V.idAtributo=A.id and E.id= V.idEstablecimiento and E.id IN (select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=0 and V.idAtributo = A.id ORDER BY V.id) ORDER BY V.id) B
+on B.uno =A.id;
+
+END $$
+DELIMITER ;
+
 
 
 DROP Procedure IF EXISTS logUsuario;
@@ -629,6 +682,25 @@ BEGIN
 
 END $$
 DELIMITER ;
+
+
+DROP Procedure IF EXISTS Merge;
+DELIMITER $$
+CREATE Procedure Merge(
+    _idO INT,
+    _idN INT
+  )
+BEGIN
+DECLARE i Varchar(250);
+Select V.valor from Valor V, Establecimiento E where V.idEstablecimiento= E.id AND V.idAtributo=1 AND E.id=_idO into i;
+select insertValor(_idN,29,0,i);
+UPDATE EstablecimientoServicio SET porcentaje=0 Where idEstablecimiento= _idO;
+UPDATE EstablecimientoServicio SET idEstablecimiento = _idN Where idEstablecimiento= _idO;
+UPDATE Calificacion SET idEstablecimiento = _idN Where idEstablecimiento= _idO;
+DELETE FROM Establecimiento WHERE id=_idO;
+END $$
+DELIMITER ;
+
 
 DROP Procedure IF EXISTS Taran;
 DELIMITER $$
@@ -660,6 +732,40 @@ END $$
 DELIMITER ;
 
 
+DROP PROCEDURE IF EXISTS selectBitacora;
+DELIMITER $$
+CREATE Procedure selectBitacora()
+Begin
+  select * from Bitacora;
+END $$
+DELIMITER ;
+
+
+SET GLOBAL event_scheduler = ON;
+Drop event if exists evento_prueba;
+delimiter |
+CREATE event evento_prueba ON schedule every 5 minute do
+begin
+declare nom text;
+declare c INT;
+declare i INT;
+declare m INT;
+declare e INT;
+declare ai INT;
+declare am INT;
+declare ae INT;
+select Count(*) from Job into c;
+select Count(*) from Bitacora Where descripcion LIKE '%creo%' into i;
+select Count(*) from Bitacora Where descripcion LIKE '%modifico%' into m;
+select Count(*) from Bitacora Where descripcion LIKE '%elimino%' into e;
+SELECT inserciones FROM Job ORDER BY id DESC LIMIT 1 into ai;
+SELECT modificaciones FROM Job ORDER BY id DESC LIMIT 1 into am;
+SELECT eliminaciones FROM Job ORDER BY id DESC LIMIT 1 into ae;
+INSERT INTO Job (resgistros, inserciones,modificaciones,eliminaciones,descripcion)
+VALUES (c,i-ai,m-am,e-ae,'Job en ejecucion');
+end |
+delimiter ;
+ALTER event evento_prueba enable;
 
 
 
@@ -676,9 +782,12 @@ select insertAtributo('Longitud',0);
 select insertAtributo('Oficial',0);
 select insertAtributo('Descripcion',0);
 
+
 select insertTipoUsuario('Administrador');
 select insertTipoUsuario('Owner');
 select insertTipoUsuario('Final');
+
+
 
 -- RELLENO
 select insertUsuario(1,'Chinin','Daniel Chavarria','1994/02/01','12312312','chino@chinin.com',1,'pokemon');
@@ -752,6 +861,7 @@ select insertAtributo('Color',1); -- 25
 select insertAtributo('Tamaño',1); -- 26
 select insertAtributo('Estado',1); -- 27
 select insertAtributo('Iluminacion',1); -- 28
+select insertAtributo('Alias',1);
 
 
 select insertEstablecimiento(3,'Taller Automotriz Auto Sueco','-90.500200','14.6463534',2,'Taller chulo');
@@ -792,8 +902,8 @@ select insertValor(3,6,15,'Para 8 personas');
 select insertValor(3,6,5,'Para 13 personas');
 select insertValor(3,13,1,'Son bien cool :D');
 select insertValor(4,6,10,'Para 2 personas');
-select insertValor(4,6,15,'Para 8 personas');
 select insertValor(4,6,5,'Para 13 personas');
+select insertValor(4,6,15,'Para 8 personas');
 select insertValor(4,13,1,'Son bien medio-cool');
 select insertValor(5,6,10,'Para 2 personas');
 select insertValor(5,6,15,'Para 8 personas');
@@ -916,6 +1026,7 @@ select insertServicio('Recreacion'); -- 22
 select insertServicio('Profesionalismo'); -- 24
 select insertServicio('Calidad'); -- 25
 select insertServicio('Seguridad'); -- 26
+select insertServicio('General');
 
 
 
@@ -968,17 +1079,963 @@ select insertEstablecimientoServicio(25,23,50);
 select insertEstablecimientoServicio(2,24,100);
 select insertEstablecimientoServicio(8,25,95);
 select insertEstablecimientoServicio(22,25,5);
-select insertEstablecimientoServicio(26,26,90);
+select insertEstablecimientoServicio(25,26,90);
 select insertEstablecimientoServicio(22,26,10);
 select insertEstablecimientoServicio(24,27,20);
 select insertEstablecimientoServicio(25,27,20);
-select insertEstablecimientoServicio(26,27,10);
+select insertEstablecimientoServicio(25,27,10);
 select insertEstablecimientoServicio(17,27,50);
 select insertEstablecimientoServicio(24,28,20);
 select insertEstablecimientoServicio(25,28,20);
-select insertEstablecimientoServicio(26,28,10);
+select insertEstablecimientoServicio(25,28,10);
 select insertEstablecimientoServicio(17,28,50);
 select insertEstablecimientoServicio(24,29,40);
 select insertEstablecimientoServicio(8,29,60);
 select insertEstablecimientoServicio(25,30,50);
 select insertEstablecimientoServicio(2,30,50);
+
+
+DROP PROCEDURE IF EXISTS LlenarTipoEstablecimientos1;
+DELIMITER $$
+CREATE PROCEDURE LlenarTipoEstablecimientos1(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre FROM CSV1;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+      IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from TipoEstablecimiento Where nombre=v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertTipoEstablecimiento(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientos1;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientos1 (
+) BEGIN
+
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_latitud VARCHAR(120);
+  DECLARE v_longitud VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_nombreTipo VARCHAR(120);
+  DECLARE v_descripcion VARCHAR(120);
+  DECLARE v_idUsuario INT;
+  DECLARE v_idTipo INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre,Nombre1, Latitud, Longitud,is_Oficial,Descripcion FROM CSV1;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombreTipo,v_nombre, v_latitud, v_longitud, v_usuario,v_descripcion;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre != '' THEN
+  IF v_usuario != 0 THEN
+  select id from TipoEstablecimiento Where nombre=v_nombreTipo into v_idTipo;
+  select insertUsuario(2,CONCAT('Grupo1 ',v_nombre),'Usuario Grupo 1','1994/12/21','','',1,'pokemon') INTO v_idUsuario;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,v_idUsuario,'Establecimiento del Grupo6');
+  ELSE
+  select id from TipoEstablecimiento Where nombre=v_nombreTipo into v_idTipo;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,0,'Establecimiento del Grupo6');
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS LlenarServicios1;
+DELIMITER $$
+CREATE PROCEDURE LlenarServicios1(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre2 FROM CSV1;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Servicio where nombre= v_nombre into ex;
+    IF ex =0 THEN
+   IF v_nombre != '' THEN
+  select insertServicio(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosServicios1;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosServicios1 (
+) BEGIN
+
+  DECLARE v_nombre1 VARCHAR(120);
+  DECLARE v_nombre2 VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre1,Nombre2 FROM CSV1;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre1,v_nombre2;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre2 != '' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS LlenarUsuarios1;
+DELIMITER $$
+CREATE PROCEDURE LlenarUsuarios1 (
+) BEGIN
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_telefono VARCHAR(120);
+  DECLARE v_correo VARCHAR(120);
+  DECLARE v_password VARCHAR(120);
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre3, Nick,	Email,	Password FROM CSV1;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre, v_usuario, v_correo, v_password;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  select count(*) from Usuario where usuario=v_usuario into ex;
+  IF ex =0 THEN
+   IF v_usuario != '' THEN
+  select insertUsuario(3,v_usuario,v_nombre,'1994/12/21','',v_correo,1,v_password);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS Grupo1;
+DELIMITER $$
+CREATE PROCEDURE Grupo1 (
+) BEGIN
+call LlenarTipoEstablecimientos1();
+call LlenarEstablecimientos1();
+call LlenarServicios1();
+call LlenarEstablecimientosServicios1();
+call LlenarUsuarios1();
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarTipoEstablecimientos2;
+DELIMITER $$
+CREATE PROCEDURE LlenarTipoEstablecimientos2(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE ex INT;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct establecimiento_tipo FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from TipoEstablecimiento where nombre = v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertTipoEstablecimiento(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarUsuarios2;
+DELIMITER $$
+CREATE PROCEDURE LlenarUsuarios2 (
+) BEGIN
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_telefono VARCHAR(120);
+  DECLARE v_correo VARCHAR(120);
+  DECLARE v_password VARCHAR(120);
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_rol VARCHAR(120);
+  DECLARE ex INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct usuario_nombre,usuario_correo,usuario_telefono,usuario_rol,usuario_password FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre, v_correo, v_telefono, v_rol,v_password;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Usuario Where usuario=v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+   IF v_rol='especial' THEN
+  select insertUsuario(2,v_nombre,v_nombre,'1994/12/21',v_telefono,v_correo,1,v_password);
+  ELSE
+  select insertUsuario(3,v_nombre,v_nombre,'1994/12/21',v_telefono,v_correo,1,v_password);
+  END IF;
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientos2;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientos2 (
+) BEGIN
+
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_latitud VARCHAR(120);
+  DECLARE v_longitud VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_nombreTipo VARCHAR(120);
+  DECLARE v_descripcion VARCHAR(120);
+  DECLARE v_oficial VARCHAR(120);
+  DECLARE v_idUsuario INT;
+  DECLARE v_idTipo INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct establecimiento_nombre,establecimiento_tipo,establecimiento_longitud,establecimiento_latitud,establecimiento_oficial FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre,v_nombreTipo, v_longitud, v_latitud, v_oficial;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre != '' THEN
+  IF v_oficial != 0 THEN
+  select id from TipoEstablecimiento Where nombre=v_nombreTipo into v_idTipo;
+  select insertUsuario(2,CONCAT('Grupo2 ',v_nombre),'Usuario Grupo 2','1994/12/21','','',1,'pokemon') INTO v_idUsuario;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,v_idUsuario,'Establecimiento del Grupo2');
+  ELSE
+  select id from TipoEstablecimiento Where nombre=v_nombreTipo into v_idTipo;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,0,'Establecimiento del Grupo2');
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarServicios2;
+DELIMITER $$
+CREATE PROCEDURE LlenarServicios2(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct servicio_nombre FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Servicio where nombre= v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertServicio(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS LlenarAtributos2;
+DELIMITER $$
+CREATE PROCEDURE LlenarAtributos2(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct caracteristica_nombre FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+   IF v_nombre != '' THEN
+  select insertAtributo(v_nombre,0);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosServicios2;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosServicios2 (
+) BEGIN
+
+  DECLARE v_nombre1 VARCHAR(120);
+  DECLARE v_nombre2 VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct establecimiento_nombre,servicio_nombre FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre1,v_nombre2;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre2 != '' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosAtributos2;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosAtributos2 (
+) BEGIN
+
+  DECLARE v_nombree VARCHAR(120);
+  DECLARE v_nombrec VARCHAR(120);
+  DECLARE v_valor VARCHAR(120);
+  DECLARE v_cantidad VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct establecimiento_nombre,caracteristica_nombre,caracteristica_valor,caracteristica_Fid_servicio FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombree,v_nombrec,v_valor,v_cantidad;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombrec != '\N' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombree LIMIT 1 into v_idEstablecimiento;
+  select A.id from Atributo A where A.nombre=v_nombrec into v_idAtributo;
+
+  select insertValor(v_idEstablecimiento,v_idAtributo,0,v_valor);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+DROP PROCEDURE IF EXISTS LlenarComentarios2;
+DELIMITER $$
+CREATE PROCEDURE LlenarComentarios2 (
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_nombre2 VARCHAR(120);
+  DECLARE v_contenido VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idUsuario INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct usuario_nombre, establecimiento_nombre,comentario_id_comentario, comentario_contenido FROM CSV2;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_usuario,v_nombre,v_nombre2,v_contenido;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_contenido != '\N' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.valor=v_nombre LIMIT 1 into v_idEstablecimiento;
+  select id from Usuario where usuario=v_usuario into v_idUsuario;
+  select insertComentario(v_idEstablecimiento,v_idUsuario,v_contenido);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS Grupo2;
+DELIMITER $$
+CREATE PROCEDURE Grupo2 (
+) BEGIN
+call LlenarTipoEstablecimientos2();
+call LlenarUsuarios2();
+call LlenarEstablecimientos2();
+call LlenarServicios2();
+call LlenarAtributos2();
+call LlenarEstablecimientosServicios2();
+call LlenarEstablecimientosAtributos2();
+call LlenarComentarios2();
+END$$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS LlenarTipoEstablecimientos3;
+DELIMITER $$
+CREATE PROCEDURE LlenarTipoEstablecimientos3(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE ex INT;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Tipo_Establecimiento FROM CSV3;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    Select count(*) from TipoEstablecimiento WHERE nombre=v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertTipoEstablecimiento(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+DROP PROCEDURE IF EXISTS LlenarServicios3;
+DELIMITER $$
+CREATE PROCEDURE LlenarServicios3(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Servicio_Establecimiento FROM CSV3;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+   IF v_nombre != '' THEN
+  select insertServicio(v_nombre);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+
+
+
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientos3;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientos3 (
+) BEGIN
+
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_latitud VARCHAR(120);
+  DECLARE v_longitud VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_tipo VARCHAR(120);
+  DECLARE v_descripcion VARCHAR(120);
+  DECLARE v_oficial VARCHAR(120);
+  DECLARE v_idUsuario INT;
+  DECLARE v_idTipo INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre,	Latitud, Longitud,	Tipo_Establecimiento,	Establecimiento_Oficial FROM CSV3;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre,v_latitud,v_longitud,v_tipo, v_oficial;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre != '' THEN
+  IF v_oficial ='Si' THEN
+  select id from TipoEstablecimiento Where nombre=v_tipo into v_idTipo;
+  select insertUsuario(2,CONCAT('Grupo3 ',v_nombre),'Usuario Grupo 3','1994/12/21','','',1,'pokemon') INTO v_idUsuario;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,v_idUsuario,'Establecimiento del Grupo3');
+  ELSE
+  select id from TipoEstablecimiento Where nombre=v_tipo into v_idTipo;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,0,'Establecimiento del Grupo3');
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosServicios3;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosServicios3 (
+) BEGIN
+
+  DECLARE v_nombre1 VARCHAR(120);
+  DECLARE v_nombre2 VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct Nombre,Servicio_Establecimiento FROM CSV3;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre1,v_nombre2;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre2 != '' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS Grupo3;
+DELIMITER $$
+CREATE PROCEDURE Grupo3(
+) BEGIN
+
+call LlenarTipoEstablecimientos3();
+call LlenarServicios3();
+call LlenarEstablecimientos3();
+call LlenarEstablecimientosServicios3();
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarTipoEstablecimientos4;
+DELIMITER $$
+CREATE PROCEDURE LlenarTipoEstablecimientos4(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE ex INT;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct nombre_tipest FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from TipoEstablecimiento where nombre = v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertTipoEstablecimiento(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS LlenarUsuarios4;
+DELIMITER $$
+CREATE PROCEDURE LlenarUsuarios4 (
+) BEGIN
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_telefono VARCHAR(120);
+  DECLARE v_correo VARCHAR(120);
+  DECLARE v_password VARCHAR(120);
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_rol VARCHAR(120);
+  DECLARE ex INT;
+
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct usuario,nombre_us,password FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_usuario, v_nombre, v_password;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Usuario Where usuario=v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertUsuario(1,v_usuario,v_nombre,'1994/12/21','Telefono Grupo4','Cosa@grupo4.com',1,v_password);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientos4;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientos4 (
+) BEGIN
+
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_latitud VARCHAR(120);
+  DECLARE v_longitud VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_nombreTipo VARCHAR(120);
+  DECLARE v_descripcion VARCHAR(120);
+  DECLARE v_oficial VARCHAR(120);
+  DECLARE v_idUsuario INT;
+  DECLARE v_idTipo INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+
+
+  SELECT distinct nombre_est,latitud,longitud,descripcion_est,nombre_tipest FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre, v_latitud, v_longitud, v_descripcion,v_nombreTipo;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre != '' THEN
+
+  select id from TipoEstablecimiento Where nombre=v_nombreTipo into v_idTipo;
+  select insertUsuario(2,CONCAT('Grupo4 ',v_nombre),'Usuario Grupo 4','1994/12/21','','',1,'pokemon') INTO v_idUsuario;
+  select insertEstablecimiento(v_idTipo,v_nombre,v_longitud,v_latitud,v_idUsuario,v_descripcion);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarServicios4;
+DELIMITER $$
+CREATE PROCEDURE LlenarServicios4(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct nombre_tipser FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Servicio where nombre= v_nombre into ex;
+    IF ex=0 THEN
+   IF v_nombre != '' THEN
+  select insertServicio(v_nombre);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+DROP PROCEDURE IF EXISTS LlenarAtributos4;
+DELIMITER $$
+CREATE PROCEDURE LlenarAtributos4(
+) BEGIN
+  DECLARE v_nombre VARCHAR(120);
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct nombre_car FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+   IF v_nombre != '' THEN
+  select insertAtributo(v_nombre,0);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosServicios4;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosServicios4 (
+) BEGIN
+
+  DECLARE v_nombre1 VARCHAR(120);
+  DECLARE v_nombre2 VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct nombre_est,nombre_ser FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre1,v_nombre2;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombre2 != '' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientosAtributos4;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientosAtributos4 (
+) BEGIN
+
+  DECLARE v_nombree VARCHAR(120);
+  DECLARE v_nombrec VARCHAR(120);
+  DECLARE v_valor VARCHAR(120);
+  DECLARE v_cantidad VARCHAR(120);
+
+  DECLARE v_idAtributo INT;
+  DECLARE v_idEstablecimiento INT;
+  DECLARE v_idServicio INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct nombre_est,nombre_car,nombre_cat,servicio_detser FROM CSV4;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombree,v_nombrec,v_valor,v_cantidad;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+  IF v_nombree != '\N' THEN
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombree LIMIT 1 into v_idEstablecimiento;
+  select A.id from Atributo A where A.nombre=v_nombrec into v_idAtributo;
+  select insertValor(v_idEstablecimiento,v_idAtributo,0,v_valor);
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+
+
+
+DROP PROCEDURE IF EXISTS Grupo4;
+DELIMITER $$
+CREATE PROCEDURE Grupo4 (
+) BEGIN
+call LlenarTipoEstablecimientos4();
+call LlenarUsuarios4();
+call LlenarEstablecimientos4();
+call LlenarServicios4();
+call LlenarAtributos4();
+call LlenarEstablecimientosServicios4();
+call LlenarEstablecimientosAtributos4();
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarUsuariosOwner6;
+DELIMITER $$
+CREATE PROCEDURE LlenarUsuariosOwner6 (
+) BEGIN
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_telefono VARCHAR(120);
+  DECLARE v_correo VARCHAR(120);
+  DECLARE v_password VARCHAR(120);
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE ex INT;
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct USERNAME_USER_CREADOR,	TELEFONO_USER_CREADOR,	CORREO_USER_CREADOR,	PASSWORD_USER_CREADOR,	NOMBRE_USER_CREADOR FROM CSV6;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_usuario, v_telefono, v_correo, v_password, v_nombre;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+    select count(*) from Usuario Where usuario=v_usuario into ex;
+    IF ex=0 THEN
+   IF v_usuario != '' THEN
+  select insertUsuario(2,v_usuario,v_nombre,'',v_telefono,v_correo,1,v_password);
+  END IF;
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS LlenarEstablecimientos6;
+DELIMITER $$
+CREATE PROCEDURE LlenarEstablecimientos6 (
+) BEGIN
+
+  DECLARE v_nombre VARCHAR(120);
+  DECLARE v_latitud VARCHAR(120);
+  DECLARE v_longitud VARCHAR(120);
+  DECLARE v_usuario VARCHAR(120);
+  DECLARE v_idUsuario INT;
+
+  DECLARE fin INTEGER DEFAULT 0;
+  DECLARE runners_cursor CURSOR FOR
+  SELECT distinct NOMBRE_ESTABLECIMIENTO, LATITUD_ESTABLECIMIENTO, LONGITUD_ESTABLECIMIENTO,USERNAME_USER_CREADOR FROM CSV6;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
+
+  OPEN runners_cursor;
+  get_runners: LOOP
+    FETCH runners_cursor INTO v_nombre, v_latitud, v_longitud, v_usuario;
+    IF fin = 1 THEN
+       LEAVE get_runners;
+    END IF;
+   IF v_nombre != '' THEN
+  select id from Usuario Where usuario=v_usuario into v_idUsuario;
+  select insertEstablecimiento(1,v_nombre,v_longitud,v_latitud,v_idUsuario,'Establecimiento del Grupo6');
+  END IF;
+  END LOOP get_runners;
+  CLOSE runners_cursor;
+END$$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS Grupo6;
+DELIMITER $$
+CREATE PROCEDURE Grupo6 (
+) BEGIN
+call LlenarUsuariosOwner();
+call LlenarEstablecimientos();
+END$$
+DELIMITER ;
