@@ -13,8 +13,9 @@
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
     "serve-favicon": "~2.3.0",
-    "mysql": "^2.9.0"    ,
+    "mysql": "^2.9.0",
     "client-sessions": "^0.7.0",
-    "multer": "^1.0.3"
+    "multer": "^1.0.3",
+    "jsreport": "~0.9.1"
   }
 }

@@ -432,7 +432,7 @@ WHILE i<n DO
   SET i=i+1;
 
 END WHILE;
-Update Establecimiento set calificacion=nota/2 where id=_idEstablecimiento;
+Update Establecimiento set calificacion=nota where id=_idEstablecimiento;
 RETURN nota;
 END IF;
 Update Establecimiento set calificacion=nota where id=_idEstablecimiento;
@@ -1218,7 +1218,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios1 (
        LEAVE get_runners;
     END IF;
   IF v_nombre2 != '' THEN
-  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
   select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
   END IF;
@@ -1466,7 +1466,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios2 (
        LEAVE get_runners;
     END IF;
   IF v_nombre2 != '' THEN
-  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
   select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
   END IF;
@@ -1501,7 +1501,7 @@ CREATE PROCEDURE LlenarEstablecimientosAtributos2 (
        LEAVE get_runners;
     END IF;
   IF v_nombrec != '\N' THEN
-  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombree LIMIT 1 into v_idEstablecimiento;
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombree LIMIT 1 into v_idEstablecimiento;
   select A.id from Atributo A where A.nombre=v_nombrec into v_idAtributo;
 
   select insertValor(v_idEstablecimiento,v_idAtributo,0,v_valor);
@@ -1690,7 +1690,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios3 (
        LEAVE get_runners;
     END IF;
   IF v_nombre2 != '' THEN
-  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstable=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
   select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
   END IF;
@@ -1828,7 +1828,7 @@ CREATE PROCEDURE LlenarServicios4(
   DECLARE ex INT;
   DECLARE fin INTEGER DEFAULT 0;
   DECLARE runners_cursor CURSOR FOR
-  SELECT distinct nombre_tipser FROM CSV4;
+  SELECT distinct nombre_ser FROM CSV4;
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin=1;
 
   OPEN runners_cursor;
@@ -1901,7 +1901,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios4 (
        LEAVE get_runners;
     END IF;
   IF v_nombre2 != '' THEN
-  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.id=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
+  select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
   select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
   END IF;
