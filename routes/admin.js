@@ -39,8 +39,19 @@ router.get('/reportes', function(req, res, next) {
 	if (!(req.user_session && req.user_session.id)) {//componer
 		res.redirect('/login?error=debe iniciar sesion primero');
 	}
+	var dbconnection = require('../routes/dbconnection.js'); 
+	str_query='select * from Usuario where idTipoUsuario=2;'
+	dbconnection.exe_query(
+		str_query,
+		mandar_usuarios,
+		res)
+	function mandar_usuarios(result){
+		res.render('admin/reportes', 
+			{ mivar: 'nombre' ,
+			usuarios: result
+		});	
+	}	
 
-	res.render('admin/reportes', { mivar: 'nombre' });
 });
 
 
@@ -84,6 +95,17 @@ router.post('/exportar',function(req,res) {
 		str_query,
 		function(result){
 			res.send(result)
+		},
+		res)
+	// body...
+})
+router.post('/reportes/filtro1',function(req,res) {
+	var dbconnection = require('../routes/dbconnection.js'); 
+	str_query='call selectEstablecimientosOwner('+req.body.id_usuario+');'
+	dbconnection.exe_query(
+		str_query,
+		function(result){
+			res.send(result[0])
 		},
 		res)
 	// body...

@@ -2,7 +2,44 @@ extends BaseAdmin
 
 block scripts
 	script.
-		
+		function btn_resporte1(){
+			var data="id_usuario="+select_usuarios.value
+			post_parametros(data,'/admin/reportes/filtro1')
+		}
+		function limpiar_select(select){			
+			for(var o in select){
+				select.options.remove(o);
+			}
+		}
+		function post_parametros(data_to_send,ruta){
+			//bootbox.alert(FormCaracteristicasTodas.innerHTML);
+			var xmlobj = new XMLHttpRequest();														
+			xmlobj.onreadystatechange = function(){			
+				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
+					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
+						var obj=JSON.parse(xmlobj.responseText);
+						//alert(xmlobj.responseText)
+						if(ruta=='/admin/reportes/filtro1'){
+							limpiar_select(select_resultado)
+							for(var i=0;i<obj.length;i++){					
+								var option = document.createElement('option')
+								option.value=obj[i]['id']
+								option.innerHTML=obj[i]['nombre']
+								option.className='list-group-item'
+								select_resultado.add(option)
+							}					
+							lbl_total.innerHTML='Total: '+obj.length
+						}						
+					}else{
+						bootbox.alert("Error al cargar");
+					}
+				}
+			};			
+			xmlobj.open('POST', ruta,true);
+			xmlobj.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xmlobj.send(data_to_send);
+			
+		}
 
 block body
 	div.container
@@ -31,7 +68,41 @@ block body
 						.panel.panel-default
 							#collapse1.panel-collapse.collapse.in
 								h2 Reporte de Owners y Establecimientos
-								|1. Reporte de Clientes (power users) y establecimientos asignados, filtro: Cliente o establecimiento. También debe mostrar los totales de los establecimientos, cuantos hay por cada categoría, servicio o tipo de establecimiento. Ahora debe ser posible asignar varios establecimientos a un cliente.	
+								|1. Reporte de Clientes (power users) y establecimientos asignados, filtro: Cliente o establecimiento. También debe mostrar los totales de los establecimientos, cuantos hay por cada categoría, servicio o tipo de establecimiento. Ahora debe ser posible asignar varios establecimientos a un cliente.									
+								.container
+									br
+									.row
+										.col-sm-2
+											b Usuario:
+										.col-sm-2
+											select.form-control(id='select_usuarios')
+												option(value='-1') Todos
+												for u in usuarios
+													option(value="#{u.id}") #{u.usuario}
+									br
+									.row
+										.col-sm-2
+											b Establecimiento:
+										.col-sm-2
+											select.form-control(id='select_establecimiento')
+												option(value='-1') Todos
+												option(value='0') establecimiento1
+												option(value='1') establecimiento2
+									br
+									.row
+										.col-sm-3
+										.col-sm-2
+											button.btn.btn-primary(type="button", onClick="btn_resporte1()") Buscar
+									br
+									.row
+										.col-sm-6
+											.panel.panel-info
+													.panel-heading(style='background-color:#A9D0F5;')
+														h3.panel-title(id="lbl_total") Total:
+													.panel-body
+														.list-group
+															select.input-group-lg(id='select_resultado' size='5', style='width:100%')																				
+
 
 								br
 								br

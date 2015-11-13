@@ -292,7 +292,7 @@ router.post('/cargar_no_oficiales',function(req,res,next){
 
 router.post('/merge',function(req,res,next){	
 	var dbconnection = require('../routes/dbconnection.js'); 	
-	var str_query = "call Merge("+req.user_session.id_establecimiento+","+req.body.id_establecimiento+");";
+	var str_query = "call Merges("+req.user_session.id_establecimiento+","+req.body.id_establecimiento+");";
 	dbconnection.exe_query(
 		str_query,
 		function(result){
