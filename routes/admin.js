@@ -125,24 +125,28 @@ router.post('/bitacora',function(req,res) {
 	// body...
 })
 
-router.get('/bitacora',function(req,res) {
-	var jsreport = require('jsreport');
+router.get('/exportarPDF',function(req,res) {
 	var dbconnection = require('../routes/dbconnection.js'); 
 	str_query='call selectBitacora();'
 	dbconnection.exe_query(
 		str_query,
 		function(result){
 
-			jsreport.render("<h1>Hello world</h1> <br> " + result).then(function(out) {
-				out.stream.pipe(res);
-			}).catch(function(e) {    
-				res.end(e.message);
-			});
-
+			devolverPDF(JSON.stringify(result),res);
 		},
 		res)
 	// body...
 })
+
+
+function devolverPDF(contenido,res){
+		var jsreport = require('jsreport');
+			jsreport.render("<h1>Hello world</h1> <br> " + contenido).then(function(out) {
+				out.stream.pipe(res);
+			}).catch(function(e) {    
+				res.end(e.message);
+			});
+}
 
 router.post('/exportar',function(req,res) {
 	var dbconnection = require('../routes/dbconnection.js'); 
