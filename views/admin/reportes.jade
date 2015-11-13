@@ -33,6 +33,20 @@ block body
 								h2 Reporte de Owners y Establecimientos
 								|1. Reporte de Clientes (power users) y establecimientos asignados, filtro: Cliente o establecimiento. También debe mostrar los totales de los establecimientos, cuantos hay por cada categoría, servicio o tipo de establecimiento. Ahora debe ser posible asignar varios establecimientos a un cliente.	
 
+								br
+								br
+								#filtro
+									label Filtro:
+									br
+									input(type='radio', name='filtro1', value='cliente', checked)
+									|Cliente
+									br
+									input(type='radio', name='filtro1', value='establecimiento')
+									|Establecimiento
+
+								
+
+
 							#collapse2.panel-collapse.collapse
 								h2 Puntuaciones
 								|2. Reporte de puntuación general, por servicio y por tipo de Establecimiento, filtros: Tipo de establecimiento, categorías y servicios. Hacer un Top 10 y listado completo.
@@ -44,7 +58,7 @@ block body
 								|4. Reporte de Bitácora de transacciones (Registros de auditoria): Filtros: por fecha, acción, establecimiento, usuario. 
 							#collapse5.panel-collapse.collapse
 								h2 Usuarios
-								|5. Reporte de usuarios. Datos de los usuarios.
+								|5. Reporte de usuarios. Datos de los usuarios.	
 
 
 
