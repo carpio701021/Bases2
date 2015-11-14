@@ -8,17 +8,14 @@ block scripts
 		}
 		function btn_reporte4(){
 			var data="usuario="+select_usuarios4.value+"&accion="+select_accion.value+"&fecha="+fecha.value+"&establecimiento="+select_establecimiento4.value;
-			alert(data)
 			post_parametros(data,'/admin/reportes/reporte4')
 		}
 		function btn_reporte3(){
-			var data="nombre="+select_establecimiento3.value+"&tipo="+select_tipo.value+"&esferas="+select_esferas.value+"&servicio="+select_servicio.value;
-			alert(data)
+			var data="nombre="+select_establecimiento3.value+"&tipo="+select_tipo.value+"&esferas="+select_esferas.value+"&servicio="+select_servicio.value;			
 			post_parametros(data,'/admin/reportes/reporte3')
 		}
 		function btn_reporte2(){
-			var data="tipo="+select_tipo2.value+"&servicio="+select_servicio2.value;
-			alert(data)
+			var data="tipo="+select_tipo2.value+"&servicio="+select_servicio2.value;			
 			post_parametros(data,'/admin/reportes/reporte2')
 		}
 		function reporte5(){
@@ -43,15 +40,29 @@ block scripts
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
 						var obj=JSON.parse(xmlobj.responseText);						
 						if(ruta=='/admin/reportes/filtro1'){
-							limpiar_select(select_resultado)
-							for(var i=0;i<obj.length;i++){					
-								var option = document.createElement('option')
-								option.value=obj[i]['id']
-								option.innerHTML=obj[i]['nombre']
-								option.className='list-group-item'
-								select_resultado.add(option)
-							}					
-							lbl_total.innerHTML='Total: '+obj.length
+							limpriar_tabla(tabla_reporte11)
+							limpriar_tabla(tabla_reporte12)
+							limpriar_tabla(tabla_reporte13)
+							for(var i=0;i<obj.consulta1.length;i++){															
+								var row = tabla_reporte11.insertRow(1);								
+								var cell1 = row.insertCell(0);								
+								cell1.innerHTML = '<a href="/establecimiento?id='+obj.consulta1[i]['id']+'">'+ obj.consulta1[i]['nombre']+'</a>'
+							}
+							for(var i=0;i<obj.consulta2.length;i++){
+								var row = tabla_reporte12.insertRow(1);								
+								var cell1 = row.insertCell(0);
+								var cell2 = row.insertCell(1);
+								cell1.innerHTML = obj.consulta2[i]['nombre']
+								cell2.innerHTML = obj.consulta2[i]['total']								
+							}
+							for(var i=0;i<obj.consulta3.length;i++){
+								var row = tabla_reporte13.insertRow(1);								
+								var cell1 = row.insertCell(0);
+								var cell2 = row.insertCell(1);
+								cell1.innerHTML = obj.consulta3[i]['nombre']
+								cell2.innerHTML = obj.consulta3[i]['COUNT(T.nombre)']
+							}
+
 						}	
 						if(ruta=='/admin/reportes/reporte5'){							
 							for(var i=0;i<obj.length;i++){															
@@ -163,47 +174,45 @@ block body
 										.col-sm-2
 											b Usuario:
 										.col-sm-2
-											select.form-control(id='select_usuarios')
-												option(value='-1') Todos
+											select.form-control(id='select_usuarios')									
 												for u in usuarios
 													option(value="#{u.id}") #{u.usuario}
 									br
 									.row
-										.col-sm-2
-											b Establecimiento:
-										.col-sm-2
-											select.form-control(id='select_establecimiento')
-												option(value='-1') Todos
-												for e in establecimientos
-													option(value="#{e.valor}") #{e.valor}
-									br
-									.row
 										.col-sm-3
 										.col-sm-2
-											button.btn.btn-primary(type="button", onClick="btn_resporte1()") Buscar
+											button.btn.btn-primary(type="button", onClick="btn_resporte1()") Buscar																			
 									br
 									.row
-										.col-sm-6
-											.panel.panel-info
-													.panel-heading(style='background-color:#A9D0F5;')
-														h3.panel-title(id="lbl_total") Total:
-													.panel-body
-														.list-group
-															select.input-group-lg(id='select_resultado' size='5', style='width:100%')																				
-
-
-								br
-								br
-								#filtro
-									label Filtro:
+										.col-sm-7
+											.container(style="width:100%")
+												h2 Establecimientos								
+												table.table(id="tabla_reporte11")
+													thead
+														tr
+															th Nombre															
 									br
-									input(type='radio', name='filtro1', value='cliente', checked)
-									|Cliente
+									.row
+										.col-sm-7
+											.container(style="width:100%")
+												h2 Establecimientos por servicio
+												table.table(id="tabla_reporte12")
+													thead
+														tr
+															th Servicio
+															th Cantidad
 									br
-									input(type='radio', name='filtro1', value='establecimiento')
-									|Establecimiento
+									.row
+										.col-sm-7
+											.container(style="width:100%")
+												h2 Establecimientos	por tipo							
+												table.table(id="tabla_reporte13")
+													thead
+														tr
+															th Tipo
+															th Cantidad						
 
-								
+							
 
 
 							#collapse2.panel-collapse.collapse

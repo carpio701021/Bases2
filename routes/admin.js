@@ -143,13 +143,12 @@ router.post('/reportes/filtro1',function(req,res) {
 			dbconnection.exe_query(
 				str_query,
 				function(resultados3){
-					req.send({
-						consulta1: resultados1,
-						consulta2: resultados2,
-						consulta3: resultados3
+					res.send({
+						consulta1: resultados1[0],
+						consulta2: resultados2[0],
+						consulta3: resultados3[0]
 					}
-						)
-					}
+					)					
 				},
 				res)
 		}
