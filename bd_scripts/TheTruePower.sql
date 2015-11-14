@@ -741,6 +741,53 @@ END $$
 DELIMITER ;
 
 
+DROP PROCEDURE IF EXISTS Consulta11;
+DELIMITER $$
+CREATE Procedure Consulta11(
+  _aqui INT
+)
+Begin
+select A.id, B.nombre from (select  V.idEstablecimiento as id from Valor V, Atributo A where A.id=4
+and V.valor=_aqui and V.idAtributo = A.id order by V.id) A
+inner join
+(select E.id as uno, V.valor as nombre from Valor V, Atributo A, Establecimiento E where A.id=1 and V.idAtributo=A.id and E.id= V.idEstablecimiento and E.id IN (select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=_aqui and V.idAtributo = A.id ORDER BY V.id)Order by V.id) B
+on B.uno =A.id;
+END $$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS Consulta12;
+DELIMITER $$
+CREATE Procedure Consulta12(
+  _aqui INT
+)
+Begin
+
+ Select A.nombre, B.total from (select S.nombre AS nombre, S.id as ida from EstablecimientoServicio E,Servicio S where S.id=E.idServicio AND idEstablecimiento IN
+(select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=_aqui and V.idAtributo = A.id ORDER BY V.id) GROUP BY E.idServicio ORDER BY E.idServicio )A
+inner join
+(select  idServicio as ss,Count(*) as total from EstablecimientoServicio where idEstablecimiento IN
+(select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=_aqui and V.idAtributo = A.id ORDER BY V.id) GROUP BY idServicio ORDER BY idServicio)B
+on B.ss=A.ida;
+END $$
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS Consulta13;
+DELIMITER $$
+CREATE Procedure Consulta13(
+  _aqui INT
+)
+Begin
+select T.nombre, COUNT(T.nombre) from TipoEstablecimiento T, Establecimiento E WHERE E.idTipoEstablecimiento=T.id and E.id IN (
+select V.idEstablecimiento from Valor V, Atributo A where A.id=4 and V.valor=_aqui and V.idAtributo = A.id ORDER BY V.id) group by T.nombre;
+END $$
+DELIMITER ;
+
+
+
+
+INSERT INTO Job (resgistros, inserciones,modificaciones,eliminaciones,descripcion) VALUES (0,0,0,0,'Job en ejecucion');
 SET GLOBAL event_scheduler = ON;
 Drop event if exists evento_prueba;
 delimiter |
@@ -754,20 +801,17 @@ declare e INT;
 declare ai INT;
 declare am INT;
 declare ae INT;
+declare da DATE;
+SELECT fecha FROM Job ORDER BY id DESC LIMIT 1 into da;
 select Count(*) from Job into c;
-select Count(*) from Bitacora Where descripcion LIKE '%creo%' into i;
-select Count(*) from Bitacora Where descripcion LIKE '%modifico%' into m;
-select Count(*) from Bitacora Where descripcion LIKE '%elimino%' into e;
-SELECT inserciones FROM Job ORDER BY id DESC LIMIT 1 into ai;
-SELECT modificaciones FROM Job ORDER BY id DESC LIMIT 1 into am;
-SELECT eliminaciones FROM Job ORDER BY id DESC LIMIT 1 into ae;
+select Count(*) from Bitacora Where descripcion LIKE '%creo%' AND fecha>da into i;
+select Count(*) from Bitacora Where descripcion LIKE '%modifico%' AND fecha>da into m;
+select Count(*) from Bitacora Where descripcion LIKE '%elimino%' AND fecha>da into e;
 INSERT INTO Job (resgistros, inserciones,modificaciones,eliminaciones,descripcion)
-VALUES (c,i-ai,m-am,e-ae,'Job en ejecucion');
+VALUES (c,i,m,e,'Job en ejecucion');
 end |
 delimiter ;
 ALTER event evento_prueba enable;
-
-
 
 
 
@@ -1220,7 +1264,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios1 (
   IF v_nombre2 != '' THEN
   select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
-  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,25);
   END IF;
   END LOOP get_runners;
   CLOSE runners_cursor;
@@ -1468,7 +1512,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios2 (
   IF v_nombre2 != '' THEN
   select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
-  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,25);
   END IF;
   END LOOP get_runners;
   CLOSE runners_cursor;
@@ -1692,7 +1736,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios3 (
   IF v_nombre2 != '' THEN
   select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstable=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
-  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,25);
   END IF;
   END LOOP get_runners;
   CLOSE runners_cursor;
@@ -1903,7 +1947,7 @@ CREATE PROCEDURE LlenarEstablecimientosServicios4 (
   IF v_nombre2 != '' THEN
   select E.id from Establecimiento E, Valor V where V.idAtributo=1 AND V.idEstablecimiento=E.id AND V.Valor=v_nombre1 LIMIT 1 into v_idEstablecimiento;
   select S.id from Servicio S where S.nombre=v_nombre2 into v_idServicio;
-  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,50);
+  select insertEstablecimientoServicio(v_idServicio,v_idEstablecimiento,25);
   END IF;
   END LOOP get_runners;
   CLOSE runners_cursor;

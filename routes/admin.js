@@ -14,6 +14,8 @@ var upload = multer({
 var express = require('express');
 var router = express.Router();
 
+var pathArchivos = "/tmp/"; //para linux
+
 
 router.get('/', function(req, res, next) {
 
@@ -53,7 +55,7 @@ router.get('/reportes', function(req, res, next) {
 			res)
 
 		function mandar_establecimientos(establecimientoss){
-			str_query='select * from tipoEstablecimiento'
+			str_query='select * from TipoEstablecimiento'
 			dbconnection.exe_query(
 				str_query,
 				mandar_tipos_establecimientos,
@@ -151,23 +153,31 @@ router.post('/bitacora',function(req,res) {
 	// body...
 })
 
-router.get('/exportarPDF',function(req,res) {
-	var dbconnection = require('../routes/dbconnection.js'); 
-	str_query='call selectBitacora();'
-	dbconnection.exe_query(
-		str_query,
-		function(result){
+router.post('/downloadReporte',function(req,res) {
 
-			devolverPDF(JSON.stringify(result),res);
-		},
-		res)
-	// body...
+	if(req.body.tipoRep=="PDF"){
+		console.log("Generando PDF");
+		devolverPDF(req.body.reporte,res);	
+	}else{
+		console.log("Bajando CSV de '" + req.body.repPath + "'");
+
+		res.download(req.body.repPath);
+
+		//var fs = require('fs');
+		//var file = fs.createWriteStream(req.body.repPath);
+		//res.pipe(file);
+    //file.on('finish', function() {
+    //  file.close(cb);  // close() is async, call cb after close completes.
+    //});
+	}
+	
+
 })
 
 
 function devolverPDF(contenido,res){
 		var jsreport = require('jsreport');
-			jsreport.render("<h1>Hello world</h1> <br> " + contenido).then(function(out) {
+			jsreport.render(contenido).then(function(out) {
 				out.stream.pipe(res);
 			}).catch(function(e) {    
 				res.end(e.message);
@@ -186,29 +196,27 @@ router.post('/exportar',function(req,res) {
 })
 router.post('/reportes/filtro1',function(req,res) {
 	var dbconnection = require('../routes/dbconnection.js'); 
-	str_query='call consulta11('+req.body.id_usuario+');'
+	str_query='call Consulta11('+req.body.id_usuario+');'
 	dbconnection.exe_query(
 		str_query,
 		c2,
 		res)
 	function c2(resultados1){
-		str_query='call consulta12('+req.body.id_usuario+');'
+		str_query='call Consulta12('+req.body.id_usuario+');'
 		dbconnection.exe_query(
 			str_query,
 			c3,
 			res)
 		function c3(resultados2){
-			str_query='call consulta13('+req.body.id_usuario+');'
+			str_query='call Consulta13('+req.body.id_usuario+');'
 			dbconnection.exe_query(
 				str_query,
 				function(resultados3){
-					req.send({
+					res.send({
 						consulta1: resultados1,
 						consulta2: resultados2,
 						consulta3: resultados3
-					}
-						)
-					}
+					})
 				},
 				res)
 		}
@@ -255,11 +263,12 @@ router.post('/reportes/reporte4',function(req,res) {
 	dbconnection.exe_query(
 		str_query,
 		function(result){
-			str_query=str_query+" into OUTFILE  'D:/reportes/reporte4.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
+			var path = pathArchivos + "reporte4["+ (new Date() ) +"].csv";
+			str_query=str_query+" into OUTFILE  '" + path + "' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
 			dbconnection.exe_query(
 				str_query,
 				function(r){
-					res.send(result)
+					res.json({r:result,repPath: path})
 				},
 				res
 				)			
@@ -274,11 +283,12 @@ router.post('/reportes/reporte5',function(req,res) {
 	dbconnection.exe_query(
 		str_query,
 		function(result){
-			str_query=str_query+" into OUTFILE  'D:/reportes/reporte5.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
+			var path = pathArchivos + "reporte5["+ (new Date() ) +"].csv";
+			str_query=str_query+" into OUTFILE  '" + path + "' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
 			dbconnection.exe_query(
 				str_query,
 				function(r){
-					res.send(result)
+					res.json({r:result,repPath: path})
 				},
 				res
 				)			
@@ -300,7 +310,7 @@ router.post('/reportes/reporte3',function(req,res) {
 	var s = req.body.servicio
 
 	str_query='select distinct E.id, E.idTipoEstablecimiento, E.calificacion, V.valor, T.nombre\
-	from Establecimiento E, Valor V, tipoEstablecimiento T, Servicio S, EstablecimientoServicio ES\
+	from Establecimiento E, Valor V, TipoEstablecimiento T, Servicio S, EstablecimientoServicio ES\
 	where V.idAtributo=1 AND V.idEstablecimiento=E.id and T.id=E.idTipoEstablecimiento\
 	AND S.id=ES.idServicio AND ES.idEstablecimiento=E.id';
 	if(t!='-1'){
@@ -318,11 +328,12 @@ router.post('/reportes/reporte3',function(req,res) {
 	dbconnection.exe_query(
 		str_query,
 		function(result){
-			str_query=str_query+" into OUTFILE  'D:/reportes/reporte3.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
+			var path = pathArchivos + "reporte3["+ (new Date() ) +"].csv";
+			str_query=str_query+" into OUTFILE  '" + path + "' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
 			dbconnection.exe_query(
 				str_query,
 				function(r){
-					res.send(result)
+					res.json({r:result,repPath: path})
 				},
 				res
 				)			
@@ -338,7 +349,7 @@ router.post('/reportes/reporte2',function(req,res) {
 	var s = req.body.servicio
 
 	str_query='select distinct E.id, E.idTipoEstablecimiento, E.calificacion, V.valor, T.nombre\
-	from Establecimiento E, Valor V, tipoEstablecimiento T, Servicio S, EstablecimientoServicio ES\
+	from Establecimiento E, Valor V, TipoEstablecimiento T, Servicio S, EstablecimientoServicio ES\
 	where V.idAtributo=1 AND V.idEstablecimiento=E.id and T.id=E.idTipoEstablecimiento\
 	AND S.id=ES.idServicio AND ES.idEstablecimiento=E.id';
 	if(t!='-1'){
@@ -351,11 +362,12 @@ router.post('/reportes/reporte2',function(req,res) {
 	dbconnection.exe_query(
 		str_query,
 		function(result){
-			str_query=str_query+" into OUTFILE  'D:/reportes/reporte2.csv' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
+			var path = pathArchivos + "reporte2["+ (new Date() ) +"].csv";
+			str_query=str_query+" into OUTFILE  '" + path + "' FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n';"	
 			dbconnection.exe_query(
 				str_query,
 				function(r){
-					res.send(result)
+					res.json({r:result,repPath: path})
 				},
 				res
 				)			

@@ -41,7 +41,10 @@ block scripts
 			xmlobj.onreadystatechange = function(){			
 				if(xmlobj.readyState==4){ //ya termino de cargar proceso 
 					if(xmlobj.status==200){ //se cargo bien similar a 404 error 200 = exito								
-						var obj=JSON.parse(xmlobj.responseText);						
+						var result=JSON.parse(xmlobj.responseText);
+						var obj=result.r;	
+						var reportePDF = '';
+									
 						if(ruta=='/admin/reportes/filtro1'){
 							limpiar_select(select_resultado)
 							for(var i=0;i<obj.length;i++){					
@@ -52,6 +55,10 @@ block scripts
 								select_resultado.add(option)
 							}					
 							lbl_total.innerHTML='Total: '+obj.length
+
+							reportePDF += '<h1>Reporte 1 </h1>';
+							reportePDF += '<h3>' + (new Date()) + '</h3>'
+							reportePDF += collapse1.innerHTML;		
 						}	
 						if(ruta=='/admin/reportes/reporte5'){							
 							for(var i=0;i<obj.length;i++){															
@@ -69,18 +76,28 @@ block scripts
 								cell4.innerHTML = obj[i]['telefono']					
 								cell5.innerHTML = obj[i]['correo']
 								cell6.innerHTML = obj[i]['genero']								
-								cell7.innerHTML = obj[i]['idTipoUsuario'];														
-							}												
+								cell7.innerHTML = obj[i]['idTipoUsuario'];		
+							}											
+							reportePDF += '<h1>Reporte 5 </h1>';
+							reportePDF += '<h3>' + (new Date()) + '</h3>'
+							reportePDF += collapse5.innerHTML;			
 						}
 						if(ruta=='/admin/reportes/reporte4'){	
-							limpiar_select(select_resultado4)						
-							for(var i=0;i<obj.length;i++){		
+							limpiar_select(select_resultado4)	
+							reportePDF += '<h1>Reporte 4 </h1>';
+							reportePDF += '<h3>' + (new Date()) + '</h3>'
+							reportePDF += '<h3>Bitacora de transacciónes</h3>'
+							//reportePDF += repo4.innerHTML;									
+							for(var i=0;i<obj.length;i++){	
+								reportePDF += '<p>'	;
+								reportePDF += obj[i]['idUsuario']+" "+obj[i]['descripcion'] + " "+ obj[i]['fecha']	;
+								reportePDF += '</p> '	;
 								var option = document.createElement('option')
 								option.value=obj[i]['id']
 								option.innerHTML=obj[i]['idUsuario']+" "+obj[i]['descripcion'] + " "+ obj[i]['fecha']
 								option.className='list-group-item'								
 								select_resultado4.add(option)
-							}												
+							}										
 						}
 						if(ruta=='/admin/reportes/reporte3'){		
 						limpriar_tabla(tabla_reporte3)					
@@ -90,10 +107,13 @@ block scripts
 								var cell2 = row.insertCell(1);								
 								cell1.innerHTML = '<a href="/establecimiento?id='+obj[i]['id']+'">'+ obj[i]['valor']+'</a>'
 								cell2.innerHTML = obj[i]['nombre'];															
-							}												
+							}							
+							reportePDF += '<h1>Reporte 3 </h1>';
+							reportePDF += '<h3>' + (new Date()) + '</h3>'
+							reportePDF += repo3.innerHTML;							
 						}			
 						if(ruta=='/admin/reportes/reporte2'){		
-						limpriar_tabla(tabla_reporte2)					
+							limpriar_tabla(tabla_reporte2)					
 							var tot=0;							
 							var cantidad=0;
 							var cali;
@@ -117,7 +137,38 @@ block scripts
 								titulo2.innerHTML='Puntuacion: ' + tot/cantidad
 							else 
 								titulo2.innerHTML='Puntuacion: ninguna'
-						}						
+
+
+							reportePDF += '<h1>Reporte 2 </h1>';
+							reportePDF += '<h3>' + (new Date()) + '</h3>'
+							reportePDF += repo2.innerHTML;		
+						}	
+
+						var formDownloads = '';
+						formDownloads += '<form action="/admin/downloadReporte" method="post">';
+
+						formDownloads += '<input type="submit" value="Descargar en PDF "/>';
+
+						formDownloads += '<input type="text" name="tipoRep" value="PDF" style="display:none"/>';
+						formDownloads += '<textarea name="reporte" style="display:none">' + reportePDF + '</textarea>';
+
+
+						formDownloads += '</form> ';
+
+						formDownloads += '<form action="/admin/downloadReporte" method="post">';
+
+						formDownloads += '<input type="submit" value="Descargar para EXCEL "/>';
+
+						formDownloads += '<input type="text" name="repPath" value="'
+						+ result.repPath +'" style="display:none"/>';
+						formDownloads += '<input type="text" name="tipoRep" value="CSV" style="display:none"/>';
+
+
+						formDownloads += '</form>';
+
+						botones.innerHTML = formDownloads;
+
+
 					}else{
 						bootbox.alert("Error al cargar");
 					}
@@ -151,6 +202,7 @@ block body
 							| 4. Bitácora de transacciones
 						a.list-group-item(data-toggle='collapse', data-parent='#accordionx', href='#collapse5',onClick="reporte5()")
 							| 5. Usuarios
+					#botones.list-group-item
 				.col-sm-8
 					#accordionx.panel-group
 						.panel.panel-default
@@ -236,7 +288,7 @@ block body
 									br
 									.row
 										.col-sm-7
-											.container(style="width:100%")
+											#repo2.container(style="width:100%")
 												h2(id="titulo2") Puntuación								
 												table.table(id="tabla_reporte2")
 													thead
@@ -299,7 +351,7 @@ block body
 									br
 									.row
 										.col-sm-7
-											.container(style="width:100%")
+											#repo3.container(style="width:100%")
 												h2 Establecimientos								
 												table.table(id="tabla_reporte3")
 													thead
@@ -359,7 +411,7 @@ block body
 											.panel.panel-info
 													.panel-heading(style='background-color:#A9D0F5;')
 														h3.panel-title Resultado
-													.panel-body
+													#repo4.panel-body
 														.list-group
 															select.input-group-lg(id='select_resultado4' size='5', style='width:100%')
 
