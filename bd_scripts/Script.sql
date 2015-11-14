@@ -23,15 +23,16 @@ USE `OutGuat` ;
 CREATE TABLE IF NOT EXISTS `OutGuat`.`TipoEstablecimiento` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
   `nombre` VARCHAR(128) NOT NULL COMMENT '',
-  PRIMARY KEY (`id`)  COMMENT '')
+  PRIMARY KEY (`id`)  COMMENT '',
+UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC)  COMMENT '')
 ENGINE = InnoDB;
-
 
 -- -----------------------------------------------------
 -- Table `OutGuat`.`Establecimiento`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `OutGuat`.`Establecimiento` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
+  `calificacion` INT NULL COMMENT '',
   `idTipoEstablecimiento` INT NOT NULL COMMENT '',
   PRIMARY KEY (`id`)  COMMENT '',
   INDEX `fk_Establecimiento_TipoEstablecimiento_idx` (`idTipoEstablecimiento` ASC)  COMMENT '',
@@ -182,18 +183,7 @@ CREATE TABLE IF NOT EXISTS `OutGuat`.`Calificacion` (
   `punteo` MEDIUMINT(9) NULL COMMENT '',
   fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`idEstablecimiento`, `idUsuario`, `idServicio`)  COMMENT '',
-  INDEX `fk_Calificacion_Usuario1_idx` (`idUsuario` ASC)  COMMENT '',
-  CONSTRAINT `fk_Calificacion_EstablecimientoServicio1`
-    FOREIGN KEY (`idServicio` , `idEstablecimiento`)
-    REFERENCES `OutGuat`.`EstablecimientoServicio` (`idServicio` , `idEstablecimiento`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Calificacion_Usuario1`
-    FOREIGN KEY (`idUsuario`)
-    REFERENCES `OutGuat`.`Usuario` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`idEstablecimiento`, `idUsuario`, `idServicio`)  COMMENT '')
 ENGINE = InnoDB;
 
 
@@ -239,7 +229,258 @@ CREATE TABLE IF NOT EXISTS `OutGuat`.`Bitacora` (
   PRIMARY KEY (`id`)  COMMENT '')
 ENGINE = InnoDB;
 
+-- -----------------------------------------------------
+-- Table `OutGuat`.`Job`
+-- -----------------------------------------------------
 
+
+CREATE TABLE IF NOT EXISTS `OutGuat`.`Job` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
+  `resgistros` INT NULL COMMENT '',
+  `inserciones` INT NULL COMMENT '',
+  `modificaciones` INT NULL COMMENT '',
+  `eliminaciones` INT NULL COMMENT '',
+  `descripcion` VARCHAR(256) NOT NULL COMMENT '',
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)  COMMENT '')
+ENGINE = InnoDB;
+-- -----------------------------------------------------
+-- Table `OutGuat`.`CSV1`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `OutGuat`.`CSV1` (
+  id_Tipo_Establecimiento	VARCHAR(255) NOT NULL,
+  Nombre	VARCHAR(255) NOT NULL,
+  Estado	VARCHAR(255) NOT NULL,
+  Servicio_Default	VARCHAR(255) NOT NULL,
+  id_Establecimiento	VARCHAR(255) NOT NULL,
+  Nombre1	VARCHAR(255) NOT NULL,
+  Latitud	VARCHAR(255) NOT NULL,
+  Longitud	VARCHAR(255) NOT NULL,
+  is_Oficial	VARCHAR(255) NOT NULL,
+  Tipo	VARCHAR(255) NOT NULL,
+  Estado1	VARCHAR(255) NOT NULL,
+  Descripcion	VARCHAR(255) NOT NULL,
+  id_Servicio_Establecimiento	VARCHAR(255) NOT NULL,
+  id_Servicio	VARCHAR(255) NOT NULL,
+  id_Establecimiento1	VARCHAR(255) NOT NULL,
+  Prioridad	VARCHAR(255) NOT NULL,
+  Estado2	VARCHAR(255) NOT NULL,
+  id_Servicio1	VARCHAR(255) NOT NULL,
+  Nombre2	VARCHAR(255) NOT NULL,
+  Estado3	VARCHAR(255) NOT NULL,
+  id_Detalle_Tipo	VARCHAR(255) NOT NULL,
+  Etiqueta	VARCHAR(255) NOT NULL,
+  Tipo_Dato	VARCHAR(255) NOT NULL,
+  es_Reservable	VARCHAR(255) NOT NULL,
+  Metrica_Reserva	VARCHAR(255) NOT NULL,
+  id_Detalle_Servicio	VARCHAR(255) NOT NULL,
+  Estado4	VARCHAR(255) NOT NULL,
+  Valor	VARCHAR(255) NOT NULL,
+  Descripcion1	VARCHAR(255) NOT NULL,
+  id_Servicio_Establecimiento1	VARCHAR(255) NOT NULL,
+  Servicio_id_Servicio	VARCHAR(255) NOT NULL,
+  Hora_Check_In	VARCHAR(255) NOT NULL,
+  id_Establecimiento2	VARCHAR(255) NOT NULL,
+  id_Usuario	VARCHAR(255) NOT NULL,
+  Estado5	VARCHAR(255) NOT NULL,
+  id_Usuario1	VARCHAR(255) NOT NULL,
+  Nombre3	VARCHAR(255) NOT NULL,
+  Nick	VARCHAR(255) NOT NULL,
+  Email	VARCHAR(255) NOT NULL,
+  Estado6	VARCHAR(255) NOT NULL,
+  Password	VARCHAR(255) NOT NULL,
+  id_Usuario2	VARCHAR(255) NOT NULL,
+  id_Rol	VARCHAR(255) NOT NULL,
+  Estado7	VARCHAR(255) NOT NULL,
+  id_Rol1	VARCHAR(255) NOT NULL,
+  Nombre4	VARCHAR(255) NOT NULL,
+  Estado8	VARCHAR(255) NOT NULL,
+  id_Calificacion	VARCHAR(255) NOT NULL,
+  id_Categoria	VARCHAR(255) NOT NULL,
+  Valor1	VARCHAR(255) NOT NULL,
+  Fecha	VARCHAR(255) NOT NULL,
+  Comentario	VARCHAR(255) NOT NULL,
+  id_Servicio_Establecimiento2	VARCHAR(255) NOT NULL,
+  id_Categoria1	VARCHAR(255) NOT NULL,
+  Nombre5	VARCHAR(255) NOT NULL,
+  Tipo_Dato1	VARCHAR(255) NOT NULL,
+  Estado9	VARCHAR(255) NOT NULL,
+  id_Detalle_Categoria	VARCHAR(255) NOT NULL,
+  Valor2	VARCHAR(255) NOT NULL,
+  id_Categoria2	VARCHAR(255) NOT NULL,
+  Estado10	VARCHAR(255) NOT NULL,
+  id_Reserva	VARCHAR(255) NOT NULL,
+  Fecha_Inicio	VARCHAR(255) NOT NULL,
+  Fecha_Fin	VARCHAR(255) NOT NULL,
+  Aprobada	VARCHAR(255) NOT NULL,
+  Usuario_id_Usuario VARCHAR(255) NOT NULL,
+  id_Detalle_Servicio1	VARCHAR(255) NOT NULL
+)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `OutGuat`.`CSV2`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `OutGuat`.`CSV2` (
+establecimiento_id_establecimiento	VARCHAR(255) NOT NULL,
+establecimiento_nombre	VARCHAR(255) NOT NULL,
+establecimiento_direccion	VARCHAR(255) NOT NULL,
+establecimiento_tipo	VARCHAR(255) NOT NULL,
+establecimiento_longitud	VARCHAR(255) NOT NULL,
+establecimiento_latitud	VARCHAR(255) NOT NULL,
+establecimiento_oficial	VARCHAR(255) NOT NULL,
+establecimiento_calificacion_general	VARCHAR(255) NOT NULL,
+establecimiento_dimension_id_establecimiento	VARCHAR(255) NOT NULL,
+establecimiento_dimension_id_dimension	VARCHAR(255) NOT NULL,
+establecimiento_dimension_id_categoria	VARCHAR(255) NOT NULL,
+categoria_id_categoria	VARCHAR(255) NOT NULL,
+categoria_nombre	VARCHAR(255) NOT NULL,
+categoria_descripcion	VARCHAR(255) NOT NULL,
+servicio_id_servicio	VARCHAR(255) NOT NULL,
+servicio_nombre	VARCHAR(255) NOT NULL,
+servicio_descripcion	VARCHAR(255) NOT NULL,
+caracteristica_id_caracteristica	VARCHAR(255) NOT NULL,
+caracteristica_nombre	VARCHAR(255) NOT NULL,
+caracteristica_valor	VARCHAR(255) NOT NULL,
+caracteristica_Fid_servicio	VARCHAR(255) NOT NULL,
+establecimiento_servicio_id_establecimiento_servicio VARCHAR(255) NOT NULL,
+establecimiento_servicio_Fid_establecimiento	VARCHAR(255) NOT NULL,
+establecimiento_servicio_Fid_servicio	VARCHAR(255) NOT NULL,
+usuario_id_usuario	VARCHAR(255) NOT NULL,
+usuario_nombre	VARCHAR(255) NOT NULL,
+usuario_correo	VARCHAR(255) NOT NULL,
+usuario_telefono	VARCHAR(255) NOT NULL,
+usuario_rol	VARCHAR(255) NOT NULL,
+usuario_id_establecimiento	VARCHAR(255) NOT NULL,
+usuario_password	VARCHAR(255) NOT NULL,
+prereserva_id_prereserva	VARCHAR(255) NOT NULL,
+prereserva_horayfecha	VARCHAR(255) NOT NULL,
+prereserva_cantpersonas	VARCHAR(255) NOT NULL,
+prereserva_id_establecimiento_servicio	VARCHAR(255) NOT NULL,
+prereserva_id_usuario	VARCHAR(255) NOT NULL,
+comentario_id_comentario	VARCHAR(255) NOT NULL,
+comentario_contenido	VARCHAR(255) NOT NULL,
+comentario_calificacion	VARCHAR(255) NOT NULL,
+comentario_Fid_establecimiento_servicio VARCHAR(255) NOT NULL
+)
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `OutGuat`.`CSV3`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `OutGuat`.`CSV3` (
+ID_Establecimiento	VARCHAR(255) NOT NULL,
+Nombre	VARCHAR(255) NOT NULL,
+Latitud	VARCHAR(255) NOT NULL,
+Longitud	VARCHAR(255) NOT NULL,
+Tipo_Establecimiento	VARCHAR(255) NOT NULL,
+Establecimiento_Oficial	VARCHAR(255) NOT NULL,
+Servicio_Establecimiento	VARCHAR(255) NOT NULL,
+Descripcion_Servicio VARCHAR(255) NOT NULL,
+Calificacion VARCHAR(255) NOT NULL,
+Comentario VARCHAR(255) NOT NULL
+)
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `OutGuat`.`CSV4`
+-- -----------------------------------------------------
+
+
+CREATE TABLE IF NOT EXISTS `OutGuat`.`CSV4` (
+calificacion	VARCHAR(255) NOT NULL,
+punteo_cal	VARCHAR(255) NOT NULL,
+usuario_cal	VARCHAR(255) NOT NULL,
+servicio_cal	VARCHAR(255) NOT NULL,
+comentario_cal	VARCHAR(255) NOT NULL,
+caracteristica	VARCHAR(255) NOT NULL,
+nombre_car	VARCHAR(255) NOT NULL,
+duracion	VARCHAR(255) NOT NULL,
+categoria	VARCHAR(255) NOT NULL,
+dimension_cat	VARCHAR(255) NOT NULL,
+nombre_cat	VARCHAR(255) NOT NULL,
+servicio_detser	VARCHAR(255) NOT NULL,
+caracteristica_detser	VARCHAR(255) NOT NULL,
+dimension	VARCHAR(255) NOT NULL,
+nombre_dim	VARCHAR(255) NOT NULL,
+dimension_dimest	VARCHAR(255) NOT NULL,
+establecimiento_dimest	VARCHAR(255) NOT NULL,
+establecimiento	VARCHAR(255) NOT NULL,
+nombre_est	VARCHAR(255) NOT NULL,
+latitud	VARCHAR(255) NOT NULL,
+longitud	VARCHAR(255) NOT NULL,
+descripcion_est	VARCHAR(255) NOT NULL,
+punteo_est	VARCHAR(255) NOT NULL,
+tipoest_est	VARCHAR(255) NOT NULL,
+oficial	VARCHAR(255) NOT NULL,
+reserva	VARCHAR(255) NOT NULL,
+fecha	VARCHAR(255) NOT NULL,
+usuario_res	VARCHAR(255) NOT NULL,
+servicio_res	VARCHAR(255) NOT NULL,
+servicio	VARCHAR(255) NOT NULL,
+cupo	VARCHAR(255) NOT NULL,
+punteo_ser	VARCHAR(255) NOT NULL,
+establecimiento_ser	VARCHAR(255) NOT NULL,
+tiposer_ser	VARCHAR(255) NOT NULL,
+nombre_ser	VARCHAR(255) NOT NULL,
+tipo_establecimiento	VARCHAR(255) NOT NULL,
+nombre_tipest	VARCHAR(255) NOT NULL,
+descripcion_tipest	VARCHAR(255) NOT NULL,
+tipo_servicio	VARCHAR(255) NOT NULL,
+nombre_tipser	VARCHAR(255) NOT NULL,
+descripcion_tipser	VARCHAR(255) NOT NULL,
+id_usuario	VARCHAR(255) NOT NULL,
+usuario	VARCHAR(255) NOT NULL,
+nombre_us	VARCHAR(255) NOT NULL,
+apellido	VARCHAR(255) NOT NULL,
+rol	VARCHAR(255) NOT NULL,
+password VARCHAR(255) NOT NULL
+)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `OutGuat`.`CSV6`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `OutGuat`.`CSV6` (
+  ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  TELEFONO_ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  DIRECCION_ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  NOMBRE_ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  LATITUD_ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  LONGITUD_ESTABLECIMIENTO	VARCHAR(255) NOT NULL,
+  USERNAME_USER_CREADOR VARCHAR(255) NOT NULL,
+  TELEFONO_USER_CREADOR	VARCHAR(255) NOT NULL,
+  CORREO_USER_CREADOR	VARCHAR(255) NOT NULL,
+  PASSWORD_USER_CREADOR	VARCHAR(255) NOT NULL,
+  NOMBRE_USER_CREADOR	VARCHAR(255) NOT NULL,
+  TIPONOMBRE_USER_CREADOR	VARCHAR(255) NOT NULL,
+  NOMBRE_DIMENSION	VARCHAR(255) NOT NULL,
+  NOMBRE_ATRIBUTO	VARCHAR(255) NOT NULL,
+  DESCRIPCION_ATRIBUTO	VARCHAR(255) NOT NULL,
+  NOMBRE_SERVICIO	VARCHAR(255) NOT NULL,
+  DESCRIPCION_SERVICIO	VARCHAR(255) NOT NULL,
+  NOMBRE_R_C	VARCHAR(255) NOT NULL,
+  SERVICIO_TRC VARCHAR(255) NOT NULL,
+  ESTABLECIMIENTO_TRC	VARCHAR(255) NOT NULL,
+  VALOR_RC	VARCHAR(255) NOT NULL,
+  COMENTARIO_RC	VARCHAR(255) NOT NULL,
+  INICIO_RC	VARCHAR(255) NOT NULL,
+  FINAL_RC	VARCHAR(255) NOT NULL,
+  USERNAME_USER_TRC	VARCHAR(255) NOT NULL,
+  TELEFONO_USER_TRC	VARCHAR(255) NOT NULL,
+  CORREO_USER_TRC	VARCHAR(255) NOT NULL,
+  PASSWORD_USER_TRC	VARCHAR(255) NOT NULL,
+  NOMBRE_USER_TRC	VARCHAR(255) NOT NULL,
+  NOMBRE_TIPOUSUARIOTRC VARCHAR(255) NOT NULL,
+  OTRA VARCHAR(255) NOT NULL
+)
+ENGINE = InnoDB;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
