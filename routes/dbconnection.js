@@ -5,7 +5,7 @@ var router = express.Router();
 default_dbhost='localhost';
 default_dbuser='root';
 default_dbpassword='1234';
-default_db = 'OutGuat';
+default_db = 'emprendedores';
 
 var if_error = function(res){
 	res.render('index', 
